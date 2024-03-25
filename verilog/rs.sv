@@ -48,6 +48,7 @@ always_ff @(posedge clock){
 			for(int i = offset;i < offset + `NUM_FU_STORE; i++) begin
 				if(!rs_table[i].busy) begin
 					rs_table[i].busy <= 1'b1;
+					rs_table[i].opcode <= op.inst[6:0];
 					break;
 				end
 			end
@@ -56,6 +57,7 @@ always_ff @(posedge clock){
 			for(int i = offset;i < offset + `NUM_FU_LOAD; i++) begin
 				if(!rs_table[i].busy) begin
 					rs_table[i].busy <= 1'b1;
+					rs_table[i].opcode <= op.inst[6:0];
 					break;
 				end		
 			end
@@ -64,6 +66,7 @@ always_ff @(posedge clock){
 			for(int i = offset;i < offset + `NUM_FU_MULT; i++) begin
 				if(!rs_table[i].busy) begin
 					rs_table[i].busy <= 1'b1;
+					rs_table[i].opcode <= op.inst[6:0];
 					break;
 				end		
 			end
@@ -72,6 +75,7 @@ always_ff @(posedge clock){
 			for(int i = offset;i < offset + `NUM_FU_ALU; i++) begin
 				if(!rs_table[i].busy) begin
 					rs_table[i].busy <= 1'b1;
+					rs_table[i].opcode <= op.inst[6:0];
 					break;
 				end	
 			end
