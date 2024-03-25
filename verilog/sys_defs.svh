@@ -33,10 +33,10 @@
 `define LSQ_SZ xx
 
 // functional units (you should decide if you want more or fewer types of FUs)
-`define NUM_FU_ALU xx
-`define NUM_FU_MULT xx
-`define NUM_FU_LOAD xx
-`define NUM_FU_STORE xx
+`define NUM_FU_ALU 1
+`define NUM_FU_MULT 1
+`define NUM_FU_LOAD 1
+`define NUM_FU_STORE 1
 
 // number of mult stages (2, 4, or 8)
 `define MULT_STAGES 4
@@ -355,5 +355,18 @@ typedef struct packed {
 /**
  * No WB output packet as it would be more cumbersome than useful
  */
+ ////////////////////////////////////////////////////////////////////added by group members
+ // definition of FU
+typedef enum logic [1:0] {
+    ALU,
+    LD,
+    ST,
+    MULT
+} FU;
+
+typedef struct packed{
+	logic [$clog2(`PHY_REG_SZ)-1:0] tag;
+	logic ready;
+} TAG;
 
 `endif // __SYS_DEFS_SVH__
