@@ -361,7 +361,8 @@ typedef enum logic [1:0] {
     ALU,
     LD,
     ST,
-    MULT
+    FP1,
+    FP2
 } FU;
 
 typedef struct packed{
