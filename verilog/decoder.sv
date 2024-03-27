@@ -1,4 +1,3 @@
-
 // The decoder, copied from p3/stage_id.sv without changes
 
 `include "verilog/sys_defs.svh"
