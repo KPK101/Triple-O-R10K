@@ -36,6 +36,11 @@ always_ff @(posedge clock)begin
 		rs_table[2].func_unit <= ST;
 		rs_table[3].func_unit <= FP1;
 		rs_table[4].func_unit <= FP2;
+		rs_table[0].busy <= 1'b0;
+		rs_table[1].busy <= 1'b0;
+		rs_table[2].busy <= 1'b0;
+		rs_table[3].busy <= 1'b0;
+		rs_table[4].busy <= 1'b0;
 	end
 	else begin 
 		if (op.wr_mem) begin // stf
@@ -88,7 +93,7 @@ end
 always_ff @(posedge clock)begin
 	for(int i = 0; i < `RS_SZ; i++)begin
 		if((rs_table[i].T1.tag && rs_table[i].T1.ready) && (rs_table[i].T2.tag && rs_table[i].T2.ready) || (!rs_table[i].T1.tag && rs_table[i].T2.ready) || (!rs_table[i].T2.tag && rs_table[i].T1.ready))begin
-			issue_out <= op;
+			issue_pkt <= op;
 			issue_out<=1'b1;
 		end
 		
