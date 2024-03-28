@@ -66,8 +66,10 @@ $monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%
 
     // Dispatch an instruction to RS
     #20;
-    inst = 32'hDEADBEEF; // Example instruction, use real encoding as per your ISA
-    // Note: You will need to set `op` properly if it's a struct or more complex than a single signal
+    inst = 32'hDEADBEEF; 
+    inst = 32'b00000000000100101000001010010011; //add t0 1 t0
+    inp.ALU_FUNC = `ALU_ADD;
+    inp.T = 
 
     // Update operand readiness after some cycles
     #30;

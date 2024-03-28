@@ -95,6 +95,7 @@ always_ff @(posedge clock)begin
 		if((rs_table[i].T1.tag && rs_table[i].T1.ready) && (rs_table[i].T2.tag && rs_table[i].T2.ready) || (!rs_table[i].T1.tag && rs_table[i].T2.ready) || (!rs_table[i].T2.tag && rs_table[i].T1.ready))begin
 			issue_pkt <= op;
 			issue_out<=1'b1;
+			rs_table[i].busy<=0;
 		end
 		
 		else begin
