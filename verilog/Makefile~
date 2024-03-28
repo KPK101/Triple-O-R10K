@@ -1,0 +1,31 @@
+
+# Sample Makefile for Verilog Simulation
+
+# Define the simulator (assuming Icarus Verilog)
+SIM = iverilog
+# Define the waveform viewer
+VIEWER = vvp
+
+# Source files
+SOURCES = rs.sv rs_test.sv sys_defs.svh ISA.svh
+# Top-level module (testbench)
+TOP_MODULE = rs_tb
+# Output file
+OUTPUT = rs_tb.out
+# Waveform output file
+WAVEFORM = rs_tb.vcd
+
+# Compilation and simulation target
+all: $(SOURCES)
+	$(SIM) -o $(OUTPUT) $(SOURCES)
+	$(VIEWER) $(OUTPUT)
+
+# Target to view waveform using GTKWave (if available)
+wave: $(WAVEFORM)
+	gtkwave $(WAVEFORM)
+
+# Clean up generated files
+clean:
+	rm -f $(OUTPUT) $(WAVEFORM)
+
+.PHONY: all wave clean

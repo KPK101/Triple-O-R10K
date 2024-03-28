@@ -24,8 +24,8 @@
 `define N 1
 
 // sizes
-`define ROB_SZ xx
-`define RS_SZ xx
+`define ROB_SZ 0
+`define RS_SZ 5
 `define PHYS_REG_SZ (32 + `ROB_SZ)
 
 // worry about these later
@@ -86,6 +86,24 @@
 `define MEM_SIZE_IN_BYTES (64*1024)
 `define MEM_64BIT_LINES   (`MEM_SIZE_IN_BYTES/8)
 
+////////////////////////////////////////////////////////////////////added by group members
+ // definition of FU
+typedef enum logic [2:0] {
+    ALU,
+    LD,
+    ST,
+    FP1,
+    FP2
+} FU;
+
+typedef struct packed{
+	logic [$clog2(`PHYS_REG_SZ):0] tag;
+	logic ready;
+} TAG;
+
+
+////////////////////////////////////////////////////////////////////
+
 typedef union packed {
     logic [7:0][7:0]  byte_level;
     logic [3:0][15:0] half_level;
@@ -136,7 +154,7 @@ typedef enum logic [3:0] {
     ECALL_M_MODE        = 4'hb,
     INST_PAGE_FAULT     = 4'hc,
     LOAD_PAGE_FAULT     = 4'hd,
-    HALTED_ON_WFI       = 4'he, // 'Wait For Interrupt'. In 470, signifies the end of computation
+    HALTED_ON_WFI       = 4'he, // 'Wait For Interrupt'.1 In 470, signifies the end of computation
     STORE_PAGE_FAULT    = 4'hf
 } EXCEPTION_CODE;
 
@@ -161,7 +179,7 @@ typedef union packed {
         logic [2:0]  funct3;
         logic [4:0]  rd;  // destination register
         logic [6:0]  opcode;
-    } i; // immediate or load instructions
+    } i; // immediate or load instructions1
     struct packed {
         logic [6:0] off; // offset[11:5] for calculating address
         logic [4:0] rs2; // source register 2
@@ -186,7 +204,7 @@ typedef union packed {
         logic [6:0]  opcode;
     } u; // upper-immediate instructions
     struct packed {
-        logic       of; // offset[20]
+        logic       of; // offset[20]1
         logic [9:0] et; // offset[10:1]
         logic       s;  // offset[11]
         logic [7:0] f;  // offset[19:12]
@@ -217,7 +235,7 @@ typedef union packed {
     } sys; // system call instructions
 `endif
 
-} INST; // instruction typedef, this should cover all types of instructions
+} INST; // instruction typedef, this should cover all ty1pes of instructions
 
 ////////////////////////////////////////
 // ---- Datapath Control Signals ---- //
@@ -276,7 +294,7 @@ typedef enum logic [4:0] {
  */
 
 /**
- * IF_ID Packet:
+ * IF_ID Packet:1
  * Data exchanged from the IF to the ID stage
  */
 typedef struct packed {
@@ -310,8 +328,10 @@ typedef struct packed {
     logic       halt;          // Is this a halt?
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we use this to get return code)
-
     logic       valid;
+    TAG		T;
+    TAG		T1;
+    TAG		T2;
 } ID_EX_PACKET;
 
 /**
@@ -355,19 +375,5 @@ typedef struct packed {
 /**
  * No WB output packet as it would be more cumbersome than useful
  */
- ////////////////////////////////////////////////////////////////////added by group members
- // definition of FU
-typedef enum logic [1:0] {
-    ALU,
-    LD,
-    ST,
-    FP1,
-    FP2
-} FU;
-
-typedef struct packed{
-	logic [$clog2(`PHY_REG_SZ)-1:0] tag;
-	logic ready;
-} TAG;
-
+ 
 `endif // __SYS_DEFS_SVH__
