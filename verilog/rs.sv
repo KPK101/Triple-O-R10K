@@ -42,7 +42,7 @@ always_ff @(posedge clock)begin
 		rs_table[3].busy <= 1'b0;
 		rs_table[4].busy <= 1'b0;
 	end
-	else begin 
+	else if(op.valid && !op.illegal) begin 
 		if (op.wr_mem) begin // stf
 			if (!rs_table[2].busy) begin 
 				rs_table[2].busy <= 1'b1;
@@ -87,10 +87,7 @@ always_ff @(posedge clock)begin
 		end
 		
 	end 
-		
-end
 
-always_ff @(posedge clock)begin
 	for(int i = 0; i < `RS_SZ; i++)begin
 		if((rs_table[i].T1.tag && rs_table[i].T1.ready) && (rs_table[i].T2.tag && rs_table[i].T2.ready) || (!rs_table[i].T1.tag && rs_table[i].T2.ready) || (!rs_table[i].T2.tag && rs_table[i].T1.ready))begin
 			issue_pkt <= op;
@@ -102,6 +99,7 @@ always_ff @(posedge clock)begin
 			issue_out<=1'b0;
 		end
 	end
+		
 end
 
 endmodule

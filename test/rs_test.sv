@@ -39,8 +39,9 @@ initial begin
     forever #10 clock = ~clock;
 end
 
-assign inp.alu_func = alu_func;
+//assign inp.alu_func = alu_func;
 assign inp.inst = inst;
+assign inp.illegal = 0;
 assign inp.T = T;
 assign inp.T1 = T1;
 assign inp.T2 = T2;
@@ -50,12 +51,12 @@ initial begin
     
 $display("STARTING TESTBENCH!");
 
-    reset = 1;
+    reset = 1;/*
     opcode = 7'b0110011; // Example opcode, adjust based on your design
     alu_func = 3'b001; // Example, specify the function
     T = {1'b1, 1'b0}; // Example TAG initialization, indicating operand not ready
     T1 = {1'b1, 1'b1}; // Operand ready
-    T2 = {1'b0, 1'b1}; // Operand ready
+    T2 = {1'b0, 1'b1}; // Operand ready*/
 
 $display("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b inst:%h issue:%b rs_busy_alu:%b rs_busy_fp1:%b rs_busy_fp2:%b rs_busy_ld:%b rs_busy_st:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, inst, issue, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st);
 
@@ -66,10 +67,17 @@ $monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%
 
     // Dispatch an instruction to RS
     #20;
-    inst = 32'hDEADBEEF; 
     inst = 32'b00000000000100101000001010010011; //add t0 1 t0
-    inp.ALU_FUNC = `ALU_ADD;
-    inp.T = 
+    inp.alu_func = ALU_ADD;
+    inp.valid = 1;
+    T.tag = 1;//destination tag should be free
+    T.valid = 1'b1;
+    T.ready = 1'b1;
+    T1.tag = 1;//input1 tag for reg0 should be free and ready bit on
+    T1.valid = 1'b1;
+    T1.ready = 1'b1;
+    T2.valid = 1'b0;//operand 2 is a constant, do not need a second tag. setting the valid bit to 0
+
 
     // Update operand readiness after some cycles
     #30;
