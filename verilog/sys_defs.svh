@@ -97,7 +97,8 @@ typedef enum logic [2:0] {
 } FU;
 
 typedef struct packed{
-	logic [$clog2(`PHYS_REG_SZ):0] tag;
+	logic [$clog2(`PHYS_REG_SZ)-1:0] tag;
+	logic valid;
 	logic ready;
 } TAG;
 
