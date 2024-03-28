@@ -1,0 +1,37 @@
+To impliment the CDB into the RS:
+
+- Update the RS entries when operands become available though the CDB. 
+- The CDB then broadcasts results from functional units to  reservation station, which then update their operands if they are waiting for those results. So send this data too. 
+
+
+How we plan to broadcast Results: When a FU completes an operation, it should write the result, along with the tag of the operation, onto the CDB. (Need to do but later after RS)
+
+Update Reservation Stations: On every clock cycle, check if the CDB carries a new result. If it does, compare the tag on the CDB with the tags (T1, T2) of operands in each reservation station entry. If there's a match, update the operand with the result from the CDB and mark it as ready.
+
+
+CDB Packet:
+//change name lol 
+typedef struct packed {
+    logic valid;
+    TAG tag;
+    logic [31:0] data; 
+} CDB_PACKET;
+
+
+
+boiler logic for the (Scratchpad)
+
+if (CDB.valid) begin
+            for (int i = 0; i < `RS_SZ; i++) begin
+                if (rs_table[i].busy) begin
+                    if (rs_table[i].T1 == CDB.tag) begin
+                        rs_table[i].T1.ready = 1'b1;
+                        // Assume you have a way to store the data too, if necessary
+                    end
+                    if (rs_table[i].T2 == CDB.tag) begin
+                        rs_table[i].T2.ready = 1'b1;
+                        // Assume you have a way to store the data too, if necessary
+                    end
+                end
+            end
+
