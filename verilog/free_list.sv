@@ -2,7 +2,7 @@
 `include "verilog/ISA.svh"
 
 
-module Stack #(parameter STACK_SIZE = `PHYS_REG_SZ)(
+module free_list #(parameter STACK_SIZE = `PHYS_REG_SZ)(
     input logic clk,
     input logic reset,
     input `TAG tag_in,
