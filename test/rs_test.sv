@@ -67,7 +67,7 @@ $monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%
 
     // Dispatch an instruction to RS
     #20;
-    inst = 32'b00000000000100101000001010010011; //add t0 1 t0
+    inst = 32'b00000000000100101000001010010011; //add r0 r0 1
     inp.alu_func = ALU_ADD;
     inp.valid = 1;
     T.tag = 1;//destination tag should be free
@@ -80,12 +80,49 @@ $monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%
 
 
     // Update operand readiness after some cycles
-    #30;
-    T = {1'b0, 1'b1}; // Now operand becomes ready
+    #20;
+    inp.alu_func = ALU_MUL; //mult r4 r3 r2
+    inp.valid = 1;
+    T.tag = 5;//destination tag r4
+    T.valid = 1'b1;
+    T.ready = 1'b1;
+    T1.tag = 4;//input1 tag for reg3 should be free and ready bit on
+    T1.valid = 1'b1;
+    T1.ready = 1'b1;
+    T2.tag = 3;//input2 tag for reg2 should be free and ready bit on
+    T2.valid = 1'b1;
+    T2.ready = 1'b1;
 
-    // Continue simulation for a while to observe behavior
-    #100;
+    #20
+    inp.alu_func = ALU_ADD;//store inst st r6 Z(r0)
+    inp.valid = 1;
+    inp.wr_mem = 1;
+    T.tag = 7;//destination tag should be free
+    T.valid = 1'b1;
+    T.ready = 1'b1;
+    T1.tag = 1;//input1 tag for reg1, assuming it to be free from ALU operation earlier and ready bit on
+    T1.valid = 1'b1;
+    T1.ready = 1'b1;
+    T2.valid = 1'b0;//operand DNE, do not need a second tag. setting the valid bit to 0
 
+    #20
+    inp.alu_func = ALU_ADD;//add r1 r1 5; adding another inst to see if ALU accepts
+    inp.valid = 1;
+    inp.wr_mem = 0;
+    T.tag = 2;//destination tag should be free
+    T.valid = 1'b1;
+    T.ready = 1'b1;
+    T1.tag = 2;//input1 tag for reg1 should be free and ready bit on
+    T1.valid = 1'b1;
+    T1.ready = 1'b1;
+    T2.valid = 1'b0;//operand 2 is a constant, do not need a second tag. setting the valid bit to 0
+
+
+    #20;
+    inp.valid = 0;
+
+	// Continue simulation for a while to observe behavior
+    #60;
     $display("\nENDING TESTBENCH: SUCCESS!");
     $display("@@@ Passed\n");
     $finish; // End simulation
