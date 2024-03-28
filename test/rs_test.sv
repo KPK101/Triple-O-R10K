@@ -57,9 +57,9 @@ $display("STARTING TESTBENCH!");
     T1 = {1'b1, 1'b1}; // Operand ready
     T2 = {1'b0, 1'b1}; // Operand ready
 
-$display("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b issue:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, issue);
+$display("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b issue:%b rs_busy_alu:%b rs_busy_fp1:%b rs_busy_fp2:%b rs_busy_ld:%b rs_busy_st:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, issue, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st);
 
-$monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b issue:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, issue);
+$monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b issue:%b rs_busy_alu:%b rs_busy_fp1:%b rs_busy_fp2:%b rs_busy_ld:%b rs_busy_st:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, issue, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st);
     // Release reset
     #20;
     reset = 0;
