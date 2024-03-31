@@ -1,0 +1,133 @@
+$date
+	Sun Mar 31 16:39:54 2024
+$end
+
+$version
+	Synopsys VCS version U-2023.03-SP2-1_Full64
+$end
+
+$timescale
+	100ps
+$end
+
+$comment Csum: 1 63baaad7a48889bc $end
+
+
+$scope module map_table_tb $end
+$var reg 1 ! clock $end
+$var reg 1 " reset $end
+$var reg 1 # command_inp [0:0] $end
+$var reg 5 $ reg_input_t [4:0] $end
+$var reg 5 % reg_input_t1 [4:0] $end
+$var reg 5 & reg_input_t2 [4:0] $end
+$var reg 7 ' T [6:0] $end
+$var reg 7 ( T1 [6:0] $end
+$var reg 7 ) T2 [6:0] $end
+$var reg 7 * T_out [6:0] $end
+$var reg 7 + T1_out [6:0] $end
+$var reg 7 , T2_out [6:0] $end
+
+$scope module dut $end
+$var wire 1 - clock $end
+$var wire 1 . reset $end
+$var reg 1 / command [0:0] $end
+$var wire 5 0 reg_t [4:0] $end
+$var wire 5 1 reg_t1 [4:0] $end
+$var wire 5 2 reg_t2 [4:0] $end
+$var reg 7 3 t [6:0] $end
+$var reg 7 4 t1 [6:0] $end
+$var reg 7 5 t2 [6:0] $end
+$var reg 7 6 t_out [6:0] $end
+$var reg 7 7 t1_out [6:0] $end
+$var reg 7 8 t2_out [6:0] $end
+$var reg 60 9 map_table_entry [59:0] $end
+
+$scope begin unnamed$$_0 $end
+$upscope $end
+
+
+$scope begin unnamed$$_1 $end
+$upscope $end
+
+
+$scope begin unnamed$$_2 $end
+$upscope $end
+
+$upscope $end
+
+$upscope $end
+
+$enddefinitions $end
+
+#0
+$dumpvars
+0!
+x/
+x#
+1.
+1"
+bxxxxxxx +
+bxxxxxxx (
+bxxxxxxx ,
+bxxxxxxx )
+bxxxxxxx *
+bxxxxxxx '
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 9
+bxxxxxxx 7
+bxxxxxxx 4
+bxxxxxxx 8
+bxxxxxxx 5
+bxxxxxxx 6
+bxxxxxxx 3
+bxxxxx $
+bxxxxx %
+bxxxxx &
+bxxxxx 0
+bxxxxx 1
+bxxxxx 2
+0-
+$end
+#100
+1!
+1-
+b001001001001000111000111000101000101000011000011000001000001 9
+#200
+0"
+0.
+0!
+0-
+#300
+1!
+1-
+#400
+b00000 $
+b00000 0
+b00001 %
+b00001 1
+b00010 &
+b00010 2
+0#
+0/
+0!
+0-
+#500
+1!
+1-
+b1000001 6
+b1000001 *
+b1000011 7
+b1000011 +
+b1000101 8
+b1000101 ,
+#600
+0!
+0-
+#700
+1!
+1-
+#800
+0!
+0-
+#900
+1!
+1-

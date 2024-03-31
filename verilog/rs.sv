@@ -96,11 +96,28 @@ always_ff @(posedge clock)begin
 			rs_table[i].busy<=0;
 			break;
 		end
-	end	
+	   end
+
+		
 		else begin
 			issue_out<=1'b0;
 		end
 	  
+	end
+	
+	//check CDB value and update T, T1, T2 of RS accordingly
+	for(int i = 0; i < `RS_SZ; i++)begin
+	   if(rs_table[i].T.valid && rs_table[i].T.tag == CDB.tag)begin
+		rs_table[i].T <= CDB;
+	   end
+		
+	   else if(rs_table[i].T1.valid && rs_table[i].T1.tag == CDB.tag)begin
+		rs_table[i].T1 <= CDB;
+	   end
+	
+	   else if(rs_table[i].T2.valid && rs_table[i].T2.tag == CDB.tag)begin
+		rs_table[i].T2 <= CDB;
+	   end
 	end
 		
 end

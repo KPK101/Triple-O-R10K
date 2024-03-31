@@ -32,7 +32,7 @@
 # ---- module testbench coverage ---- #
 # make <module>.coverage    <- print the coverage hierarchy report to the terminal
 # make <module>.cov.verdi   <- open the coverage report in verdi
-# make <module>.cov         <- compiles a coverage executable for the module and testbench
+# make <module>.cov         <- compiles a coverage ersxecutable for the module and testbench
 # make <module>.cov.vdb     <- runs the executable and creates the <module>.cov.vdb directory
 # make <module>_cov_report  <- run urg to create human readable coverage reports
 
@@ -164,7 +164,7 @@ GREP = grep -E --color=auto
 
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
-TESTED_MODULES = rs
+TESTED_MODULES = rs map_table
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
@@ -179,6 +179,9 @@ $(call DEPS,rob): $(ROB_DEPS)
 
 RS_DEPS = 
 $(call DEPS, rs): $(RS_DEPS)
+
+MAP_TABLE_DEPS = 
+$(call DEPS, rs): $(MAP_TABLE_DEPS)
 
 # This allows you to use the following make targets:
 # make <module>.pass   <- greps for "@@@ Passed" or "@@@ Incorrect" in the output

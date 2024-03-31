@@ -102,6 +102,7 @@ typedef struct packed{
 	logic ready;
 } TAG;
 
+typedef enum logic {READ, WRITE} COMMAND;
 
 ////////////////////////////////////////////////////////////////////
 
