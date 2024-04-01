@@ -13,9 +13,9 @@ module free_list #(parameter STACK_SIZE = `PHYS_REG_SZ)(
     output logic full   
 );
 
-    // Internal variables
+   
     logic [31:0] stack [STACK_SIZE - 1:0];
-    logic [`PHYS_REG_SZ-1:0] top; // 7 bits to represent up to 128 elements
+    logic [`PHYS_REG_SZ-1:0] top; // bits to represent up to 128 elements
 
     // Initialize top of stack
     initial begin
