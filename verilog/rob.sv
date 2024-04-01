@@ -3,14 +3,12 @@
 `include "verilog/free_list.sv" // check if this works 
 
 typedef struct packed{
-	logic [6:0] opcode;
-	TAG T, Told, CDB;
-	logic full; 
+	TAG T, Told;
 }ROB_ENTRY;
 
-typedef struct packed{
+/*typedef struct packed{
 	TAG T, Told;
-}ROB_R_PACKET;
+}ROB_R_PACKET;*/
 
 module rob(
 	input clock,
@@ -19,7 +17,8 @@ module rob(
 	input TAG T, Told, CDB,
 	input EX_C_PACKET complete, // complete signal from complete stage (add done signal when we make the EX_C_PACKET)
 
-	output ROB_R_PACKET retire_pkt // send to retire stage -> only contains tag information 
+	output rob_CDB_T, rob_Told
+	//output ROB_R_PACKET retire_pkt // send to retire stage -> only contains tag information 
 );
 
 	ROB_ENTRY [`ROB_SZ -1:0] rob_table; // size of table = 7 (must be bigger than rs) 
@@ -37,13 +36,13 @@ module rob(
 	assign rob_table[tail].T = free_list.pop; // assign a free tag 
 	assign rob_table[tail].Told = ;// assign the old tag EDIT
 
-	/* increment head and tail signals */
+	/* increment head and tail signals -> circular buffer*/
 	assign next_tail = (tail == `ROB_SZ -1) ? 0 : tail + 1; 
 	assign next_head = rob_retire ? (head + 1) : head; 
 
 	/* assign retire packet and send tag info to retire stage */
-	assign retire_pkt.T = rob_table[head].T; 
-	assign retire_pkt.Told = rob_table[head].Told; 
+	assign rob_CDB_T = rob_table[head].T; // CDB
+	assign rob_Told = rob_table[head].Told; // arch map  
 
 	/* stop sending signals if the table is full -> send to dispatch I guess?*/
 	assign rob_table.full = (tail == `ROB_SZ-1) ? 1 :0;
