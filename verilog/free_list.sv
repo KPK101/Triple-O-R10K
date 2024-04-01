@@ -14,8 +14,9 @@ module free_list #(parameter STACK_SIZE = `PHYS_REG_SZ)(
 );
 
    
-    logic [31:0] stack [STACK_SIZE - 1:0];
-    logic [`PHYS_REG_SZ-1:0] top; // bits to represent up to 128 elements
+    `TAG stack [STACK_SIZE - 1:0];
+    // `TAG NULL_TAG;
+    logic [$clog2(STACK_SIZE):0] top; // bits to represent up to all physical registers
 
     // Initialize top of stack
     initial begin
@@ -42,8 +43,17 @@ module free_list #(parameter STACK_SIZE = `PHYS_REG_SZ)(
     end
 
     // Output data
-    assign tag_out = stack[top - 1];
-    assign empty = (top == 0);
-    assign full = (top == STACK_SIZE);
+    always_comb begin
+        // if (empty) begin
+        //     assign tag_out = NULL_TAG // define NULL_TAG
+        // end
+        // else begin
+        //     assign tag_out = stack[top];
+        // end
+        assign tag_out = stack[top];ss
+        assign empty = (top == 0);
+        assign full = (top == STACK_SIZE);
+    end
+    
 
 endmodule
