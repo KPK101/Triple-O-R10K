@@ -4,97 +4,123 @@
 
 module rs_tb;
 
-// Define testbench signals based on the rs module's interface
-reg clock;
-reg reset;
-reg [31:0] inst; // Simplification, adjust according to your actual packet structure
-reg [2:0] alu_func; // Example functional unit specifier
-reg [6:0] opcode;
-// Assuming TAG is a structure you have defined that includes a 'tag' and 'ready' field
-TAG T, T1, T2, CDB;
-ID_EX_PACKET inp;
-wire rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st;
-wire issue;
-wire [31:0] issue_pkt; // Simplification, adjust according to your actual packet structure
+	// Define testbench signals based on the rs module's interface
+	logic clock;
+	logic reset;
 
-// Instantiate the RS
-rs dut (
-    .clock(clock),
-    .reset(reset),
-    // Assuming op is a complex packet, you'd need to construct it properly
-    .op(inp), // Simplified, construct this based on your actual structure
-    .T(T), .T1(T1), .T2(T2), .CDB(CDB),
-    .rs_busy_alu(rs_busy_alu),
-    .rs_busy_fp1(rs_busy_fp1),
-    .rs_busy_fp2(rs_busy_fp2),
-    .rs_busy_ld(rs_busy_ld),
-    .rs_busy_st(rs_busy_st),
-    .issue_pkt(issue_pkt),
-    .issue(issue)
-);
+	ID_EX_PACKET input_pkt;
+	TAG cdb;
 
-// Clock generation
-initial begin
-    clock = 0;
-    forever #10 clock = ~clock;
-end
+	logic rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st;
+	logic issue;
+	ID_EX_PACKET issue_pkt;
 
-//assign inp.alu_func = alu_func;
-assign inp.inst = inst;
-assign inp.illegal = 0;
-assign inp.T = T;
-assign inp.T1 = T1;
-assign inp.T2 = T2;
-// Test stimulus
-initial begin
-    // Initialize inputs
-    
-$display("STARTING TESTBENCH!");
-
-    reset = 1;/*
-    opcode = 7'b0110011; // Example opcode, adjust based on your design
-    alu_func = 3'b001; // Example, specify the function
-    T = {1'b1, 1'b0}; // Example TAG initialization, indicating operand not ready
-    T1 = {1'b1, 1'b1}; // Operand ready
-    T2 = {1'b0, 1'b1}; // Operand ready*/
-
-$display("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b inst:%h issue:%b rs_busy_alu:%b rs_busy_fp1:%b rs_busy_fp2:%b rs_busy_ld:%b rs_busy_st:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, inst, issue, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st);
-
-$monitor("@@@ Time:%4.0f clock:%b reset:%h opcode:%b alu_func:%b T:%h T1:%b T2:%b inst:%h issue:%b rs_busy_alu:%b rs_busy_fp1:%b rs_busy_fp2:%b rs_busy_ld:%b rs_busy_st:%b", $time, clock, reset, opcode, alu_func, T, T1, T2, inst, issue, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st);
-    // Release reset
-    #20;
-    reset = 0;
-
-    // Dispatch an instruction to RS
-    #20;
-    inst = 32'b00000000000100101000001010010011; //add t0 1 t0
-    inp.alu_func = ALU_ADD;
-    inp.valid = 1;
-    T.tag = 1;//destination tag should be free
-    T.valid = 1'b1;
-    T.ready = 1'b1;
-    T1.tag = 1;//input1 tag for reg0 should be free and ready bit on
-    T1.valid = 1'b1;
-    T1.ready = 1'b1;
-    T2.valid = 1'b0;//operand 2 is a constant, do not need a second tag. setting the valid bit to 0
-
-
-    // Update operand readiness after some cycles
-    #30;
-    T = {1'b0, 1'b1}; // Now operand becomes ready
-
-    // Continue simulation for a while to observe behavior
-    #100;
-
-    $display("\nENDING TESTBENCH: SUCCESS!");
-    $display("@@@ Passed\n");
-    $finish; // End simulation
-end
-
-// Initialize signals for waveform generation
-initial begin
-    $dumpfile("rs_tb.vcd");
-    $dumpvars(0, rs_tb);
-end
+	// Instantiate the RS
+	rs dut (
+	    .clock(clock),
+	    .reset(reset),
+	    .input_pkt(input_pkt),
+	    .cdb(cdb),
+	    .rs_busy_alu(rs_busy_alu),
+	    .rs_busy_fp1(rs_busy_fp1),
+	    .rs_busy_fp2(rs_busy_fp2),
+	    .rs_busy_ld(rs_busy_ld),
+	    .rs_busy_st(rs_busy_st),
+	    .issue_pkt(issue_pkt),
+	    .issue(issue)
+	);
+	always begin
+		#(`CLOCK_PERIOD/2.0);
+		clock = ~clock;
+	end
+	
+	initial begin
+		$monitor("time: %3.0d clk: %b input_pkt.wr_mem: %b input_pkt.rd_mem: %b input_pkt.T1: %b input_pkt.T2: %b \ncdb: %b rs_busy_alu: %b rs_busy_fp1: %b rs_busy_fp2: %b rs_busy_ld: %b rs_busy_st: %b issue: \n %b issue_pkt: %b\n",
+		             $time, clock, input_pkt.wr_mem, input_pkt.rd_mem, input_pkt.T1, input_pkt.T2, cdb, rs_busy_alu, rs_busy_fp1, rs_busy_fp2, rs_busy_ld, rs_busy_st, issue, issue_pkt);
+		clock		= 1'b0;
+		reset		= 1'b0;
+		cdb.tag		= 32'b1;
+		cdb.ready	= 0;
+		cdb.valid 	= 1;
+		input_pkt	= 0;
+		
+		
+        reset = 1'b1;
+        @(negedge clock);
+        reset = 1'b0;
+        
+        // ADD
+        input_pkt.alu_func	= ALU_ADD;
+        input_pkt.T1.tag	= 1;
+        input_pkt.T2.tag	= 2;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        // LD
+        input_pkt.alu_func	= ALU_ADD;
+        input_pkt.T1.tag	= 3;
+        input_pkt.T2.tag	= 4;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 1;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        // ST
+        input_pkt.alu_func	= ALU_ADD;
+        input_pkt.T1.tag	= 5;
+        input_pkt.T2.tag	= 6;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 1;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        // MULT
+        input_pkt.alu_func	= ALU_MUL;
+        input_pkt.T1.tag	= 5;
+        input_pkt.T2.tag	= 6;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        // MULT
+        input_pkt.alu_func	= ALU_MUL;
+        input_pkt.T1.tag	= 5;
+        input_pkt.T2.tag	= 6;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        
+        
+		
+		$display("@@@ Passed: SUCCESS! \n ");
+		$finish;
+		
+		
+	end
 
 endmodule
