@@ -164,7 +164,7 @@ GREP = grep -E --color=auto
 
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
-TESTED_MODULES = rs
+TESTED_MODULES = free_list rs rob arch_map map_table
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
@@ -179,6 +179,15 @@ $(call DEPS,rob): $(ROB_DEPS)
 
 RS_DEPS = 
 $(call DEPS, rs): $(RS_DEPS)
+
+FR_DEPS = 
+$(call DEPS, free_list): $(FR_DEPS)
+
+AM_DEPS = 
+$(call DEPS, arch_map): $(AM_DEPS)
+
+MT_DEPS = 
+$(call DEPS, map_table): $(MT_DEPS)
 
 # This allows you to use the following make targets:
 # make <module>.pass   <- greps for "@@@ Passed" or "@@@ Incorrect" in the output
@@ -309,7 +318,11 @@ HEADERS = verilog/sys_defs.svh \
 TESTBENCH = test/pipeline_test.sv \
             test/pipeline_print.c \
             test/mem.sv \
-	    test/rs_test.sv
+	    	test/rs_test.sv \
+	    	test/free_list_test.sv \
+	    	test/arch_map_test.sv \
+	    	test/map_table_test.sv \
+	    	test/rob_test.sv \
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
@@ -317,7 +330,11 @@ SOURCES = verilog/pipeline.sv \
           verilog/icache.sv \
           verilog/mult.sv \
           verilog/mult_stage.sv \
-	  verilog/rs.sv \
+	  	  verilog/rs.sv \
+	  	  verilog/free_list.sv \
+	  	  verilog/arch_map.sv \
+	  	  verilog/map_table.sv \
+	  	  verilog/rob.sv \
 
 SYNTH_FILES = synth/pipeline.vg
 

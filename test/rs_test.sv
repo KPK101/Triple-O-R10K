@@ -101,6 +101,40 @@ module rs_tb;
         input_pkt.valid		= 1;
         input_pkt.illegal	= 0;
         @(negedge clock);
+        
+        
+        // RDY ADD
+		cdb.tag		= 1;
+		cdb.ready	= 1;
+		cdb.valid 	= 1;
+        input_pkt.alu_func	= ALU_MUL;
+        input_pkt.T1.tag	= 5;
+        input_pkt.T2.tag	= 6;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
+        // MULT
+		cdb.tag		= 2;
+		cdb.ready	= 1;
+		cdb.valid 	= 1;
+        input_pkt.alu_func	= ALU_MUL;
+        input_pkt.T1.tag	= 5;
+        input_pkt.T2.tag	= 6;
+        input_pkt.T1.ready	= 0;
+        input_pkt.T2.ready	= 0;
+        input_pkt.T1.valid	= 1;
+        input_pkt.T2.valid	= 1;
+        input_pkt.wr_mem	= 0;
+        input_pkt.rd_mem	= 0;
+        input_pkt.valid		= 1;
+        input_pkt.illegal	= 0;
+        @(negedge clock);
         // MULT
         input_pkt.alu_func	= ALU_MUL;
         input_pkt.T1.tag	= 5;

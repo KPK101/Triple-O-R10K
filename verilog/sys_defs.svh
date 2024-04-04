@@ -24,7 +24,7 @@
 `define N 1
 
 // sizes
-`define ROB_SZ 0
+`define ROB_SZ 32
 `define RS_SZ 5
 `define PHYS_REG_SZ (32 + `ROB_SZ)
 
@@ -69,7 +69,7 @@
 // Cache mode removes the byte-level interface from memory, so it always returns
 // a double word. The original processor won't work with this defined. Your new
 // processor will have to account for this effect on mem.
-// Notably, you can no longer write data without first reading.
+// Notably, you can no longer write data without first reading.ALU_OPA_SELECT opa_select,
 `define CACHE_MODE
 
 // you are not allowed to change this definition for your final processor
@@ -87,21 +87,11 @@
 `define MEM_64BIT_LINES   (`MEM_SIZE_IN_BYTES/8)
 
 ////////////////////////////////////////////////////////////////////added by group members
- // definition of FU
-typedef enum logic [2:0] {
-    ALU,
-    LD,
-    ST,
-    FP1,
-    FP2
-} FU;
-
 typedef struct packed{
-        logic valid;
-	logic [$clog2(`PHYS_REG_SZ)-1:0] tag;
+    logic valid;
+	logic [$clog2(`PHYS_REG_SZ)-1:0] phys_reg;
 	logic ready;
 } TAG;
-
 
 ////////////////////////////////////////////////////////////////////
 
@@ -163,7 +153,7 @@ typedef enum logic [3:0] {
 // ---- Instruction Typedef ---- //
 ///////////////////////////////////
 
-// from the RISC-V ISA spec
+// from the RISC-V ISA specALU_OPA_SELECT opa_select,
 typedef union packed {
     logic [31:0] inst;
     struct packed {
@@ -306,8 +296,9 @@ typedef struct packed {
 } IF_ID_PACKET;
 
 /**
- * ID_EX Packet:
- * Data exchanged from the ID to the EX stage
+ * ID_IS Packet:
+ * Data exchanged from the ID to the IS stage
+ * It is also held in the RS for OOO
  */
 typedef struct packed {
     INST              inst;
@@ -330,10 +321,11 @@ typedef struct packed {
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we use this to get return code)
     logic       valid;
-    TAG		T;
-    TAG		T1;
-    TAG		T2;
-} ID_EX_PACKET;
+    
+    TAG			t;
+    TAG			t1;
+    TAG			t2;
+} ID_IS_PACKET;
 
 /**
  * EX_MEM Packet:
