@@ -24,7 +24,7 @@ module arch_map (
 			foreach (reg_map[i]) begin
 				reg_map[i].phys_reg <= i;
 			end
-		end else if (in_en) begin
+		end else if (retire_en) begin
 			//When retire is enabled, replace t_old with t
 			foreach (reg_map[i]) begin
 				if (reg_map[i].phys_reg == retire_t_old.phys_reg) begin

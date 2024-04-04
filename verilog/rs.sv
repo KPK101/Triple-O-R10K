@@ -19,16 +19,16 @@ module rs(
 	input in_en,
 	
 	//When instruction is finished execuring, it will use this to clear rs entry
-	input remove_idx,
+	input logic [$clog2(`RS_SZ)-1:0] remove_idx,
 	input remove_en,
 	
 	//is_packet that is ready to be issued
 	output ID_IS_PACKET is_packet_out,
-	output logic issue_en
+	output logic issue_en,
 	
 	//available idx in the rs_table that current input can go into. Only valid when free is true.
-	output [$clog2(`RS_SZ)-1:0] free_idx,
-	output logic free,
+	output logic [$clog2(`RS_SZ)-1:0] free_idx,
+	output logic free
 );
 	
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;
@@ -54,8 +54,8 @@ module rs(
 		foreach (rs_table[i]) begin
 			//Check if it has not been issued and tags are either invalid (in case of empty) or ready
 			if((!rs_table[i].issued) &&
-			   (!rs_table[i].is_packet.T1.valid || rs_table[i].is_packet.T1.ready) && 
-			   (!rs_table[i].is_packet.T2.valid || rs_table[i].is_packet.T2.ready)) begin
+			   (!rs_table[i].is_packet.t1.valid || rs_table[i].is_packet.t1.ready) && 
+			   (!rs_table[i].is_packet.t2.valid || rs_table[i].is_packet.t2.ready)) begin
 				is_packet_out = rs_table[i].is_packet;
 				issue_en = 1;
 			end
@@ -72,21 +72,21 @@ module rs(
 			//When there is valid cdb, ready all tags that have same pr
 			if (cdb.valid) begin
 				foreach (rs_table[i]) begin
-					if (rs_table[i].is_packet.T1.valid && 
-					    rs_table[i].is_packet.T1.phys_reg == cdb.phys_reg) begin
-						rs_table[i].is_packet.T1.ready <= 1;
+					if (rs_table[i].is_packet.t1.valid && 
+					    rs_table[i].is_packet.t1.phys_reg == cdb.phys_reg) begin
+						rs_table[i].is_packet.t1.ready <= 1;
 					end
-					if (rs_table[i].is_packet.T2.valid && 
-					    rs_table[i].is_packet.T2.phys_reg == cdb.phys_reg) begin
-						rs_table[i].is_packet.T2.ready <= 1;
+					if (rs_table[i].is_packet.t2.valid && 
+					    rs_table[i].is_packet.t2.phys_reg == cdb.phys_reg) begin
+						rs_table[i].is_packet.t2.ready <= 1;
 					end
 				end
 			end
 			
 			//add new entry to rs when in is enabled and there is free space
 			if (free && in_en) begin
-				rs_table[entry_idx].busy   <= 1'b1;
-				rs_table[entry_idx].is_packet    <= is_packet_in;
+				rs_table[free_idx].busy   <= 1'b1;
+				rs_table[free_idx].is_packet    <= is_packet_in;
 			end
 			
 			//remove rs entry

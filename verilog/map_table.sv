@@ -19,7 +19,7 @@ module map_table (
 	output TAG read_out_2,
 	
 	//return the value in write_idx (before it is written)
-	output TAG write_out,
+	output TAG write_out
 );
 	TAG [31:0] reg_map;
 	
