@@ -34,25 +34,28 @@ module rob (
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
 	logic [$clog2(`ROB_SZ)-1:0] head_idx;
+	logic [$clog2(`ROB_SZ):0] counter;
 	
 `ifdef DEBUG
 	assign head_idx_dbg = head_idx;
 `endif
 	
 	//assign free
-	assign free = (head_idx != free_idx);
+	assign free = counter == `ROB_SZ;
 	
 	//assign retire
 	assign retire_t = rob[head_idx].t;
 	assign retire_t_old = rob[head_idx].t_old;
 	assign retire_en = rob[head_idx].is_complete;
+	assign next_counter = retire_en && !(free && in_en) ? counter - 1 :
+		(free && in_en) && !retire_en ? counter + 1: counter;
 	
 	always_ff @(posedge clock) begin
 		if (reset) begin
 			//Reset head and tail index
 			head_idx <= 0;
 			free_idx <= 0;
-			
+			counter <= 0;
 			//Invalidate 0 index entry for insertion
 			rob[0].t.valid <= 0;
 			rob[0].t_old.valid <= 0;
@@ -75,6 +78,7 @@ module rob (
 			if (complete_en) begin
 				rob[complete_idx].is_complete <= 1;
 			end
+			counter <= next_counter;
 		end
 	end
 endmodule
