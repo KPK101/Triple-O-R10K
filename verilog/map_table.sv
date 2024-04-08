@@ -1,3 +1,4 @@
+
 module map_table (
 	input clock,
 	input reset,
@@ -13,6 +14,7 @@ module map_table (
 	
 	//cdb for ready bit generator
 	input TAG cdb,
+	input cdb_enable,
 	
 	//read outputs
 	output TAG read_out_1,
@@ -39,7 +41,7 @@ module map_table (
 			end
 		end else begin
 			//if cdb is valid, then ready all tags that has same phys_reg
-			if (cdb.valid) begin
+			if (cdb_enable) begin
 				foreach (reg_map[i]) begin
 					if (reg_map[i].phys_reg == cdb.phys_reg) begin
 						reg_map[i].ready <= 1'b1;
