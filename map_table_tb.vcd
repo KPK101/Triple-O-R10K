@@ -1,5 +1,5 @@
 $date
-	Sun Mar 31 16:39:54 2024
+	Wed Apr  3 20:13:44 2024
 $end
 
 $version
@@ -10,37 +10,45 @@ $timescale
 	100ps
 $end
 
-$comment Csum: 1 63baaad7a48889bc $end
+$comment Csum: 1 fc5041503dd47ed0 $end
 
 
 $scope module map_table_tb $end
-$var reg 1 ! clock $end
-$var reg 1 " reset $end
-$var reg 1 # command_inp [0:0] $end
-$var reg 5 $ reg_input_t [4:0] $end
-$var reg 5 % reg_input_t1 [4:0] $end
-$var reg 5 & reg_input_t2 [4:0] $end
-$var reg 7 ' T [6:0] $end
+$var reg 1 ! command_inp [0:0] $end
+$var reg 1 " clock $end
+$var reg 1 # reset $end
+$var reg 1 $ CDB_enable $end
+$var reg 5 % reg_input_t [4:0] $end
+$var reg 5 & reg_input_t1 [4:0] $end
+$var reg 5 ' reg_input_t2 [4:0] $end
+
+$scope task _$$txp______assert_unnamed$$_0 $end
+$upscope $end
+
 $var reg 7 ( T1 [6:0] $end
-$var reg 7 ) T2 [6:0] $end
-$var reg 7 * T_out [6:0] $end
-$var reg 7 + T1_out [6:0] $end
-$var reg 7 , T2_out [6:0] $end
+$var reg 7 ) T1_out [6:0] $end
+$var reg 7 * T [6:0] $end
+$var reg 7 + T2 [6:0] $end
+$var reg 7 , CDB [6:0] $end
+$var reg 7 - T_out [6:0] $end
+$var reg 7 . T2_out [6:0] $end
 
 $scope module dut $end
-$var wire 1 - clock $end
-$var wire 1 . reset $end
-$var reg 1 / command [0:0] $end
-$var wire 5 0 reg_t [4:0] $end
-$var wire 5 1 reg_t1 [4:0] $end
-$var wire 5 2 reg_t2 [4:0] $end
-$var reg 7 3 t [6:0] $end
-$var reg 7 4 t1 [6:0] $end
-$var reg 7 5 t2 [6:0] $end
-$var reg 7 6 t_out [6:0] $end
-$var reg 7 7 t1_out [6:0] $end
-$var reg 7 8 t2_out [6:0] $end
-$var reg 60 9 map_table_entry [59:0] $end
+$var wire 1 / clock $end
+$var wire 1 0 reset $end
+$var wire 1 1 CDB_enable $end
+$var reg 1 2 command [0:0] $end
+$var wire 5 3 reg_t [4:0] $end
+$var wire 5 4 reg_t1 [4:0] $end
+$var wire 5 5 reg_t2 [4:0] $end
+$var reg 7 6 t [6:0] $end
+$var reg 7 7 t1 [6:0] $end
+$var reg 7 8 t2 [6:0] $end
+$var reg 7 9 CDB [6:0] $end
+$var reg 7 : t_out [6:0] $end
+$var reg 7 ; t1_out [6:0] $end
+$var reg 7 < t2_out [6:0] $end
+$var reg 60 = map_table_entry [59:0] $end
 
 $scope begin unnamed$$_0 $end
 $upscope $end
@@ -53,6 +61,10 @@ $upscope $end
 $scope begin unnamed$$_2 $end
 $upscope $end
 
+
+$scope begin unnamed$$_3 $end
+$upscope $end
+
 $upscope $end
 
 $upscope $end
@@ -61,73 +73,108 @@ $enddefinitions $end
 
 #0
 $dumpvars
-0!
-x/
-x#
-1.
-1"
-bxxxxxxx +
-bxxxxxxx (
+x$
+0"
+x2
+x!
+x1
+10
+1#
 bxxxxxxx ,
 bxxxxxxx )
+bxxxxxxx (
+bxxxxxxx .
+bxxxxxxx +
+bxxxxxxx -
 bxxxxxxx *
-bxxxxxxx '
-bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 9
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx =
+bxxxxxxx ;
 bxxxxxxx 7
-bxxxxxxx 4
+bxxxxxxx <
 bxxxxxxx 8
-bxxxxxxx 5
+bxxxxxxx :
 bxxxxxxx 6
-bxxxxxxx 3
-bxxxxx $
+bxxxxxxx 9
 bxxxxx %
 bxxxxx &
-bxxxxx 0
-bxxxxx 1
-bxxxxx 2
-0-
+bxxxxx '
+bxxxxx 3
+bxxxxx 4
+bxxxxx 5
+0/
 $end
+#50
+1"
+1/
+b001001001001000111000111000101000101000011000011000001000001 =
 #100
-1!
-1-
-b001001001001000111000111000101000101000011000011000001000001 9
-#200
+0#
+00
+0$
+01
 0"
-0.
+0/
+#150
+1"
+1/
+#200
+b00000 %
+b00000 3
+b00001 &
+b00001 4
+b00010 '
+b00010 5
 0!
-0-
+02
+0"
+0/
+#250
+1"
+1/
+b1000001 :
+b1000001 -
+b1000011 ;
+b1000011 )
+b1000101 <
+b1000101 .
 #300
 1!
-1-
-#400
-b00000 $
-b00000 0
-b00001 %
-b00001 1
-b00010 &
-b00010 2
-0#
+12
+b1000110 *
+b1000110 6
+0"
 0/
-0!
-0-
+#350
+1"
+1/
+b00100100100100011100011100010xxxxxxx00001xxxxxxx000001000110 =
+#400
+b1001000 (
+b1001000 7
+0"
+0/
+#450
+1"
+1/
 #500
-1!
-1-
-b1000001 6
-b1000001 *
-b1000011 7
-b1000011 +
-b1000101 8
-b1000101 ,
+b1001010 +
+b1001010 8
+0"
+0/
+#550
+1"
+1/
 #600
 0!
-0-
-#700
-1!
-1-
-#800
-0!
-0-
-#900
-1!
-1-
+02
+0"
+0/
+#650
+1"
+1/
+b1000110 :
+b1000110 -
+bxxxxxxx ;
+bxxxxxxx )
+bxxxxxxx <
+bxxxxxxx .

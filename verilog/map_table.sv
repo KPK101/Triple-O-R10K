@@ -15,7 +15,8 @@ typedef struct packed{
 module map_table(
 	input clock,
 	input reset,
-	input TAG t,t1,t2,
+	input CDB_enable,
+	input TAG t,t1,t2, CDB,//(implement CDB)
 	input COMMAND command,
 	input [$clog2(`PHYS_REG_SZ)-1:0] reg_t, reg_t1, reg_t2,
 	output TAG t_out,
@@ -52,16 +53,24 @@ always_ff @(posedge clock) begin
 	//if write command, check tag numbers within the TAG struct of each map entry, and if same as input, update it
 	else if(command == WRITE)begin
 		for(int i = 0; i < $clog2(`PHYS_REG_SZ); i++)begin
-			if(map_table_entry[i].tag.tag == t.tag)begin
+			if(map_table_entry[i].tag.tag == reg_t)begin
 				map_table_entry[i].tag <= t;
 			end
 			
-			if(map_table_entry[i].tag.tag == t1.tag)begin
+			if(map_table_entry[i].tag.tag == reg_t1)begin
 				map_table_entry[i].tag <= t1;
 			end
 
-			if(map_table_entry[i].tag.tag == t2.tag)begin
+			if(map_table_entry[i].tag.tag == reg_t2)begin
 				map_table_entry[i].tag <= t2;
+			end
+		end
+	end
+
+	else if(CDB_enable)begin
+		for(int i = 0; i < $clog2(`PHYS_REG_SZ); i++)begin
+			if(map_table_entry[i].tag.tag == CDB.tag)begin
+				map_table_entry[i].tag <= CDB;
 			end
 		end
 	end
