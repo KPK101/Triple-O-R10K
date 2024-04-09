@@ -22,7 +22,7 @@ module rs(
 	input logic [$clog2(`RS_SZ)-1:0] remove_idx,
 	input remove_en,
 	
-	//is_packet that is ready to be issued
+	//is_packet that is ready to be issued. these are issue logic conerned outputs
 	output ID_IS_PACKET is_packet_out,
 	output logic issue_en,
 	

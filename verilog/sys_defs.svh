@@ -274,7 +274,7 @@ typedef enum logic [4:0] {
 } ALU_FUNC;
 
 ////////////////////////////////
-// ---- Datapath Packets ---- //
+// ---- Datapath Packets ---- //OPB_IS_I_IMM
 ////////////////////////////////
 
 /**
@@ -305,9 +305,6 @@ typedef struct packed {
     logic [`XLEN-1:0] PC;
     logic [`XLEN-1:0] NPC; // PC + 4
 
-    logic [`XLEN-1:0] rs1_value; // reg A value
-    logic [`XLEN-1:0] rs2_value; // reg B value
-
     ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
     ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
 
@@ -317,14 +314,17 @@ typedef struct packed {
     logic       wr_mem;        // Does inst write memory?
     logic       cond_branch;   // Is inst a conditional branch?
     logic       uncond_branch; // Is inst an unconditional branch?
-    logic       halt;          // Is this a halt?
+    logic       halt;          // Is this a halt?OPB_IS_I_IMM
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we use this to get return code)
     logic       valid;
-    
+    //added by us to old ID_EX_PACKET
     TAG			t;
     TAG			t1;
     TAG			t2;
+
+    logic [$clog2(`RS_SZ)-1:0] rs_idx,
+    logic [$clog2(`ROB_SZ)-1:0] rob_idx,
 } ID_IS_PACKET;
 
 /**
@@ -338,7 +338,7 @@ typedef struct packed {
     logic             take_branch; // Is this a taken branch?
     // Pass-through from decode stage
     logic [`XLEN-1:0] rs2_value;
-    logic             rd_mem;
+    logic             rd_mem;OPB_IS_I_IMM
     logic             wr_mem;
     logic [4:0]       dest_reg_idx;
     logic             halt;
