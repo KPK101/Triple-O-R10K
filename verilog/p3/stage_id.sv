@@ -101,7 +101,7 @@ module decoder (
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_AND;
-                end
+                endhas_dest_reg
                 `RV32_ORI: begin
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
@@ -118,7 +118,7 @@ module decoder (
                     alu_func   = ALU_SLL;
                 end
                 `RV32_SRLI: begin
-                    has_dest   = `TRUE;
+                    has_dest   = `TRUE;has_dest_reg
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_SRL;
                 end
@@ -187,7 +187,7 @@ module decoder (
                 end
                 `WFI: begin
                     halt = `TRUE;
-                end
+                endhas_dest_reg
                 default: begin
                     illegal = `TRUE;
                 end
