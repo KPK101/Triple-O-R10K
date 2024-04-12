@@ -51,6 +51,28 @@ module pipeline (
     // output logic [31:0]      mem_wb_inst_dbg,
     // output logic             mem_wb_valid_dbg
 );
+    //////////////////////////////////////////////////
+    //                                              //
+    //                R10K Components               //
+    //                                              //
+    //////////////////////////////////////////////////
+    
+    TAG cdb;
+    logic cdb_en;
+    
+    ID_MT_PACKET id_mt;
+    MT_ID_PACKET mt_id;
+    
+    map_table map_table (
+        .clock (clock),
+        .reset (reset),
+        
+        .cdb(cdb),
+        .cdb_en(cdb),
+        
+        .id_mt_packet(id_mt),
+        .mt_id_packet(mt_id)
+    );
 
     //////////////////////////////////////////////////
     //                                              //
