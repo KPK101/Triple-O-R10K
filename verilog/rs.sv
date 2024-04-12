@@ -21,7 +21,7 @@ module rs(
 	
 	output RS_ID_PACKET rs_id_packet,
 	
-	output RS_IS_PACKET rs_is_packet,
+	output RS_IS_PACKET rs_is_packet
 );
 	
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;

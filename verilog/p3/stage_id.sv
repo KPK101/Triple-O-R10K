@@ -202,11 +202,6 @@ module stage_id (
     input              clock,           // system clock
     input              reset,           // system reset
     input IF_ID_PACKET if_id_reg,
-    input              wb_regfile_en,   // Reg write enable from WB Stage
-    input [4:0]        wb_regfile_idx,  // Reg write index from WB Stage
-    input [`XLEN-1:0]  wb_regfile_data, // Reg write data from WB Stage
-
-    output ID_EX_PACKET id_packet
 );
 
     assign id_packet.inst = if_id_reg.inst;

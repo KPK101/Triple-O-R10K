@@ -14,7 +14,7 @@ module rob (
 	
 	output ROB_ID_PACKET rob_id_packet,
 	
-	output ROB_MT_PACKET rob_mt_packet
+	output ROB_IR_PACKET rob_ir_packet
 );
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
@@ -24,12 +24,12 @@ module rob (
 	//Handle rob->id
 	assign rob_id_packet.free = counter == `ROB_SZ;
 	
-	//Handle rob->mt output
-	assign rob_mt_packet.retire_t = rob[head_idx].t;
-	assign rob_mt_packet.retire_t_old = rob[head_idx].t_old;
-	assign rob_mt_packet.retire_en = rob[head_idx].is_complete;
-	assign next_counter = rob_mt_packet.retire_en && !(rob_id_packet.free && id_rob_packet.write_en) ? counter - 1 :
-                          (rob_id_packet.free && id_rob_packet.write_en) && !rob_mt_packet.retire_en ? counter + 1 : counter;
+	//Handle rob->retire output
+	assign rob_ir_packet.retire_t = rob[head_idx].t;
+	assign rob_ir_packet.retire_t_old = rob[head_idx].t_old;
+	assign rob_ir_packet.retire_en = rob[head_idx].is_complete;
+	assign next_counter = rob_ir_packet.retire_en && !(rob_id_packet.free && id_rob_packet.write_en) ? counter - 1 :
+                          (rob_id_packet.free && id_rob_packet.write_en) && !rob_ir_packet.retire_en ? counter + 1 : counter;
 	
 	always_ff @(posedge clock) begin
 		if (reset) begin
@@ -54,8 +54,8 @@ module rob (
 				rob[ic_rob_packet.complete_idx].is_complete <= 1;
 			end
 			
-			//Handle rob->mt update
-			if (rob_mt_packet.retire_en) begin
+			//Handle rob->retire update
+			if (rob_ir_packet.retire_en) begin
 				head_idx <= head_idx + 1;
 			end
 			//Update Counter
