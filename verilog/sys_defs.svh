@@ -225,9 +225,9 @@ typedef struct packed{
 }PRF_IS_PACKET;
 
 
-/////////////////////////////
-// ---- Stage Packets ---- //
-/////////////////////////////
+////////////////////////////////
+// ---- IF -> ID Packets ---- //
+////////////////////////////////
 
 typedef struct packed {
     INST              inst;
@@ -235,6 +235,11 @@ typedef struct packed {
     logic [`XLEN-1:0] NPC; // PC + 4
     logic             valid;
 } IF_ID_PACKET;
+
+
+////////////////////////////////
+// ---- IS -> EX Packets ---- //
+////////////////////////////////
 
 //TODO: THIS CODE IS A PLACEHOLDER.
 typedef struct packed {
@@ -265,7 +270,7 @@ typedef struct packed {
 
 
 typedef struct packed {
-    logic [`XLEN-1:0] alu_result;
+    logic [`XLEN-1:0] result;
     logic [`XLEN-1:0] NPC;
 
     logic             take_branch; // Is this a taken branch?
@@ -283,6 +288,8 @@ typedef struct packed {
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
     
     logic             valid;
+    //tells the issue logic that the incoming packet has a computation which was just performed by the FU
+    logic 	          done;
 } EX_IC_PACKET;
 
 
