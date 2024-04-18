@@ -2,6 +2,10 @@ typedef struct packed {
 	TAG t;
 	TAG t_old;
 	logic is_complete;
+	logic wr_mem;
+	logic [`XLEN-1:0] wr_addr;
+	logic [`XLEN-1:0] wr_val;
+	
 } ROB_ENTRY;
 
 module rob (

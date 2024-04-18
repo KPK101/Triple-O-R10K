@@ -81,10 +81,10 @@ module pipeline (
     logic [4:0]       wb_regfile_idx;
     logic [`XLEN-1:0] wb_regfile_data;
     
-    //////////////////////////////////////////////////is_ex_reg
+    //////////////////////////////////////////////////
     //                                              //
     //                R10K Components               //
-    //                                              //
+    //                                   proc2Imem_command           //
     //////////////////////////////////////////////////
     
     //cdb
@@ -116,7 +116,7 @@ module pipeline (
         .clock (clock),
         .reset (reset),
         
-        .cdb(cdb),
+        .cdb(cdb),proc2Imem_command
         .cdb_en(cdb),
         
         .id_rs_packet(id_rs_packet),
@@ -155,12 +155,17 @@ module pipeline (
 	    .fl_id_packet(fl_id_packet)
 	);
 	
-	//TODO:ADD PRF
 	//PRF
-	
 	IS_PRF_PACKET is_prf_packet;
-	IC_PRF_PACKET ic_prf_packet;
+	EX_PRF_PACKET ex_prf_packet;
 	PRF_IS_PACKET prf_is_packet;
+	
+	prf prf (
+	    .clock (clock),
+	    .is_prf_packet(is_prf_packet),
+	    .ic_prf_packet(ic_prf_packet),
+	    .prf_is_packet(prf_is_packet)
+	);
 	
 	//TODO:Figure out arch map
 
@@ -314,7 +319,6 @@ module pipeline (
     stage_is stage_is_0 (
         // Inputs
         .ex_ic_reg      (ex_ic_reg),
-        .ic_prf_packet   (ic_prf_packet),
         .ic_rob_packet      (ic_rob_packet)
     );
     

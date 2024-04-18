@@ -80,7 +80,6 @@ typedef struct packed{
     ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
     ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
 
-    logic [4:0] dest_reg_idx;  // destination (writeback) register index
     ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
     logic       rd_mem;        // Does inst read memory?
     logic       wr_mem;        // Does inst write memory?
@@ -207,17 +206,16 @@ typedef struct packed{
 // ---- Physical Register File Packets ---- //
 //////////////////////////////////////////////
 
-//TODO: THIS IC_PRF IS TEMPORARY (WHAT IF YOU NEED TO COMPLETE MORE THAN ONE??)
-typedef struct packed{
-    TAG write_tag;
-    logic [`XLEN-1:0] write_data;
-    logic write_en;
-}IC_PRF_PACKET;
-
 typedef struct packed{
     TAG read_tag_1;
     TAG read_tag_2;
 }IS_PRF_PACKET;
+
+typedef struct packed{
+    TAG write_tag;
+    logic [`XLEN-1:0] write_data;
+    logic write_en;
+}EX_PRF_PACKET;
 
 typedef struct packed{
     logic [`XLEN-1:0] read_out_1;
@@ -236,7 +234,6 @@ typedef struct packed {
     logic             valid;
 } IF_ID_PACKET;
 
-//TODO: THIS CODE IS A PLACEHOLDER.
 typedef struct packed {
     INST              inst;
     logic [`XLEN-1:0] PC;
@@ -248,7 +245,7 @@ typedef struct packed {
     ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
     ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
 
-    logic TAG dest_tag;  // destination tag
+    TAG         dest_tag;  // destination tag
     ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
     logic       rd_mem;        // Does inst read memory?
     logic       wr_mem;        // Does inst write memory?
@@ -257,6 +254,7 @@ typedef struct packed {
     logic       halt;          // Is this a halt?
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we only used this as a cheap way to get return code)
+    
     logic [$clog2(`RS_SZ)-1:0] rs_idx;
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
 
@@ -265,21 +263,17 @@ typedef struct packed {
 
 
 typedef struct packed {
-    logic [`XLEN-1:0] alu_result;
+    logic [`XLEN-1:0] result;
     logic [`XLEN-1:0] NPC;
 
     logic             take_branch; // Is this a taken branch?
     // Pass-through from decode stage
     logic [`XLEN-1:0] rs2_value;
-    logic             rd_mem;
     logic             wr_mem;
-    logic [4:0]       dest_reg_idx;
+    TAG               dest_tag;
     logic             halt;
     logic             illegal;
     logic             csr_op;
-    logic             rd_unsigned; // Whether proc2Dmem_data is signed or unsigned
-    MEM_SIZE          mem_size;
-    logic [$clog2(`RS_SZ)-1:0] rs_idx;
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
     
     logic             valid;

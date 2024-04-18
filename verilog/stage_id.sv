@@ -223,11 +223,12 @@ module stage_id (
     //Create decoder_packet for rs
     logic has_dest_reg;
     DECODER_PACKET decoder_packet;
+    
     //Decoder Passthrough
     assign decoder_packet.inst = if_id_reg.inst;
     assign decoder_packet.PC = if_id_reg.PC;
     assign decoder_packet.NPC = if_id_reg.NPC;
-    assign decoder_packet.valid = if_id_reg.valid;
+    assign decoder_packet.valid = if_id_reg.valid & ~decoder_packet.illegal;
     decoder decoder_0 (
         // Inputs
         .inst  (if_id_reg.inst),
