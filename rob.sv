@@ -1,65 +1,66 @@
-`include "verilog/sys_defs.svh"
-`include "verilog/ISA.svh"
-`include "verilog/free_list.sv" // check if this works 
+typedef struct packed {
+	TAG t;
+	TAG t_old;
+	logic is_complete;
+} ROB_ENTRY;
 
-typedef struct packed{
-	logic [6:0] opcode;
-	TAG T, Told, CDB;
-	logic full; 
-}ROB_ENTRY;
-
-typedef struct packed{
-	TAG T, Told;
-}ROB_R_PACKET;
-
-module rob(
+module rob (
 	input clock,
 	input reset,
-	input ID_EX_PACKET ????, // NEED INPUT
-	input TAG T, Told, CDB,
-	input EX_C_PACKET complete, // complete signal from complete stage (add done signal when we make the EX_C_PACKET)
-
-	output ROB_R_PACKET retire_pkt // send to retire stage -> only contains tag information 
+	input ID_ROB_PACKET id_rob_packet, //from dispatch 
+	input IC_ROB_PACKET ic_rob_packet, // from complete
+	
+	output ROB_ID_PACKET rob_id_packet, // to dispatch -> what indexs are ready 
+	output ROB_IR_PACKET rob_ir_packet // to retire -> letting know what tags to retire
 );
 
-	ROB_ENTRY [`ROB_SZ -1:0] rob_table; // size of table = 7 
+	ROB_ENTRY [`ROB_SZ-1:0] rob; // 3:0 
 	
+	logic [$clog2(`ROB_SZ)-1:0] head_idx;
+	logic [$clog2(`ROB_SZ):0] counter;
+	logic rob_full;
+
+	//Handle rob->id
+	assign rob_id_packet.full = rob_full;
+	assign rob_full = (counter == `ROB_SZ-1); // check if rob has room to take the packet 
 	
-	logic [`ROB_SZ-1:0] head, tail;
-	logic [`ROB_SZ-1:0] next_head, next_tail;
-	logic [`ROB_SZ-1:0] rob_retire;
-
-	//assign rob_table.done = EX_C_PACKET.done; 
-	assign rob_retire = complete.done; // retire if the head instruction is done EDIT after we make the packet
+	//Handle rob->retire output
+	assign rob_ir_packet.retire_t = rob[head_idx].t; // tag 
+	assign rob_ir_packet.retire_t_old = rob[head_idx].t_old; // old tag
+	assign rob_ir_packet.retire_en = rob[head_idx].is_complete; // retire enable 
 	
-	/* assign tag information */ 
-	assign rob_table[tail].T = free_list.pop; // assign a free tag 
-	assign rob_table[tail].Told = ;// assign the old tag EDIT
-
-	/* increment head and tail signals */
-	assign next_tail = (tail == `ROB_SZ -1) ? 0 : tail + 1; 
-	assign next_head = rob_retire ? (head + 1) : head; 
-
-	/* assign retire packet and send tag info to retire stage */
-	assign retire_pkt.T = rob_table[head].T; 
-	assign retire_pkt.Told = rob_table[head].Told; 
-
-	/* stop sending signals if the table is full -> send to dispatch I guess?*/
-	assign rob_table.full = (tail == `ROB_SZ-1) ? 1 :0;
-	
-	/* update head/tail information every pos edge of the clock */
-	always_ff @(posedge clock)begin
-		if (reset) begin 
-			head <= 0;
-			tail <= 0;
+	always_ff @(posedge clock) begin
+		if (reset) begin
+			//Reset head and tail index
+			head_idx <= 0;
+			rob_id_packet.free_idx <= 0; // start from the top of the list 
+			counter <= 0;
+			//Invalidate 0 index entry for insertion
+			rob[0].t.valid <= 0;
+			rob[0].t_old.valid <= 0;
+			rob[0].is_complete <= 0;
+		end else begin
+			//Handle id->rob
+			if (!rob_full && id_rob_packet.write_en) begin // write something
+				rob[rob_id_packet.free_idx].t <= id_rob_packet.t_in;
+				rob[rob_id_packet.free_idx].t_old <= id_rob_packet.t_old_in;
+				rob[rob_id_packet.free_idx].is_complete <= 0;
+				counter <= counter + 1;
+				rob_id_packet.free_idx <= rob_id_packet.free_idx + 1;
+			end
+			//Handle ic->rob
+			if (ic_rob_packet.complete_en) begin // if something is complete
+				rob[ic_rob_packet.complete_idx].is_complete <= 1;
+			end
+			//Handle rob->retire update
+			if (rob_ir_packet.retire_en) begin 
+				head_idx <= head_idx + 1;
+				counter <= counter - 1;
+			end
+			if (rob_id_packet.full == 1) rob_id_packet.free_idx = `FALSE;
 		end
-		else begin 
-			head <= next_head;
-			tail <= next_tail;		
-		end 
-			
 	end
-
-
 endmodule
+			
+	
 	
