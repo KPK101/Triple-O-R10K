@@ -123,6 +123,12 @@ typedef struct packed{
 	TAG write_out;
 }MT_ID_PACKET;
 
+typedef struct packed{
+    TAG retire_t;
+    TAG retire_t_old;
+    logic retire_en;
+}IR_MT_PACKET;
+
 ///////////////////////////////////////////
 // ---- Reservation Station Packets ---- //
 ///////////////////////////////////////////
@@ -187,15 +193,10 @@ typedef struct packed{
 }ID_FL_PACKET;
 
 typedef struct packed{
-    TAG retire_t_old;
-    logic retire_en;
-}IR_FL_PACKET;
-
-typedef struct packed{
     TAG retire_t;
     TAG retire_t_old;
     logic retire_en;
-}IR_AM_PACKET;
+}IR_FL_PACKET;
 
 typedef struct packed{
     TAG free_tag;

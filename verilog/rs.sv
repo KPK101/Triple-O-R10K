@@ -11,6 +11,8 @@ module rs(
 	input clock,
 	input reset,
 	
+	input interrupt,
+	
 	//bus input
 	input TAG cdb,
 	input logic cdb_en,
@@ -54,7 +56,7 @@ module rs(
 
 	always_ff @(posedge clock) begin
 		//Handle reset
-		if (reset) begin
+		if (reset || interrupt) begin
 			foreach (rs_table[i]) begin
 				rs_table[i].busy = 0;
 			end

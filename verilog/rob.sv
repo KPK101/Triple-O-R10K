@@ -2,6 +2,8 @@ typedef struct packed {
 	TAG t;
 	TAG t_old;
 	logic is_complete;
+	logic is_branch_taken;
+	logic is_store;
 	logic wr_mem;
 	logic [`XLEN-1:0] wr_addr;
 	logic [`XLEN-1:0] wr_val;
@@ -11,6 +13,7 @@ typedef struct packed {
 module rob (
 	input clock,
 	input reset,
+	input interrupt,
 	
 	input ID_ROB_PACKET id_rob_packet,
 	
@@ -36,7 +39,7 @@ module rob (
                           (rob_id_packet.free && id_rob_packet.write_en) && !rob_ir_packet.retire_en ? counter + 1 : counter;
 	
 	always_ff @(posedge clock) begin
-		if (reset) begin
+		if (reset || interrupt) begin
 			//Reset head and tail index
 			head_idx <= 0;
 			rob_id_packet.free_idx <= 0;
