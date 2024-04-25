@@ -382,7 +382,7 @@ typedef struct packed{
     logic [$clog2(`ROB_SZ)-1:0] complete_idx;
     
 	logic [`XLEN-1:0] result;
-	logic ['XLEN-1:0] rs2_value;
+	logic [`XLEN-1:0] rs2_value;
 	logic take_branch;
 	
 }IC_ROB_PACKET;
@@ -403,7 +403,7 @@ typedef struct packed{
 	logic [`XLEN-1:0] NPC;
 	
 	logic [`XLEN-1:0] result;
-	logic ['XLEN-1:0] rs2_value;
+	logic [`XLEN-1:0] rs2_value;
 	logic take_branch;
 	
 }ROB_IR_PACKET;
