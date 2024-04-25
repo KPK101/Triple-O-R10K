@@ -164,7 +164,7 @@ GREP = grep -E --color=auto
 
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
-TESTED_MODULES = rs
+TESTED_MODULES = rob
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
@@ -174,10 +174,10 @@ MULT_DEPS = verilog/mult_stage.sv
 $(call DEPS,mult): $(MULT_DEPS)
 
 # No dependencies for the rob (TODO: add any you create)
-ROB_DEPS =
+ROB_DEPS = verilog/rob.sv
 $(call DEPS,rob): $(ROB_DEPS)
 
-RS_DEPS = 
+RS_DEPS = verilog/rs.sv
 $(call DEPS, rs): $(RS_DEPS)
 
 # This allows you to use the following make targets:
@@ -309,7 +309,8 @@ HEADERS = verilog/sys_defs.svh \
 TESTBENCH = test/pipeline_test.sv \
             test/pipeline_print.c \
             test/mem.sv \
-	    test/rs_test.sv
+	    test/rs_test.sv \
+	    test/rob_test.sv
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
@@ -317,7 +318,7 @@ SOURCES = verilog/pipeline.sv \
           verilog/icache.sv \
           verilog/mult.sv \
           verilog/mult_stage.sv \
-	  verilog/rs.sv \
+	  verilog/rs.sv 
 
 SYNTH_FILES = synth/pipeline.vg
 
