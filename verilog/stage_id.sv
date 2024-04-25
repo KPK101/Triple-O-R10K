@@ -212,13 +212,6 @@ module stage_id (
     output ID_ROB_PACKET id_rob_packet,
     output ID_FL_PACKET id_fl_packet,
 );
-    //availability and consumption logic
-    logic free;
-    assign free = rs_id_packet.free && rob_id_packet.free && fl_id_packet.free;
-    
-    assign id_rs_packet.write_en = free;
-    assign id_rob_packet.write_en = free;
-    assign id_fl_packet.pop_en = free;
 
     //Create decoder_packet for rs
     logic has_dest_reg;
@@ -248,7 +241,10 @@ module stage_id (
         .illegal       (decoder_packet.illegal)
     );
     
-    //Assign Map Table Output
+    //Helpers
+    logic free;
+    assign free = rs_id_packet.free && rob_id_packet.free && fl_id_packet.free && decoder_packet.valid;
+    
     logic need_rs1;
     logic need_rs2;
     assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);
@@ -257,6 +253,7 @@ module stage_id (
                        decoder_packet.opb_select == OPB_IS_B_IMM    || 
                        decoder_packet.opb_select == OPB_IS_S_IMM);
     
+    //Assign Map Table Output
     assign id_mt_packet.read_idx_1 = need_rs1 ? decoder_packet.inst.r.rs1 : 'ZERO_REG;
     assign id_mt_packet.read_idx_2 = need_rs2 ? decoder_packet.inst.r.rs2 : 'ZERO_REG;
     assign id_mt_packet.write_idx = has_dest_reg ? if_id_reg.inst.r.rd : `ZERO_REG;
@@ -264,7 +261,7 @@ module stage_id (
     assign id_mt_packet.write_en = free && has_dest_reg;
     
     //Assign Map Table Input
-    assign decoder_packet.t = fl_id_packet.free_tag;
+    assign decoder_packet.t = has_dest_reg ? fl_id_packet.free_tag : 0;
     assign decoder_packet.t1 = mt_id_packet.read_out_1;
     assign decoder_packet.t2 = mt_id_packet.read_out_2;
     
@@ -276,9 +273,16 @@ module stage_id (
     assign decoder_packet.rs_idx = rs_id_packet.free_idx;
     
     //Assign Reorder Buffer Output
+    assign id_rob_packet.write_en = free;
+    
     assign id_rob_packet.t_in = fl_id_packet.free_tag;
     assign id_rob_packet.t_old_in = mt_id_packet.write_out;
-    assign id_rob_packet.write_en = free;
+    
+    assign id_rob_packet.halt = decoder_packet.halt;
+    assign id_rob_packet.wr_mem = decoder_packet.wr_mem;
+    assign id_rob_packet.dest_reg_idx = id_mt_packet.write_idx;
+    assign id_rob_packet.NPC = if_id_reg.NPC;
+    
     
     //Assign Reorder buffer Input
     assign decoder_packet.rob_idx = rob_id_packet.free_idx;

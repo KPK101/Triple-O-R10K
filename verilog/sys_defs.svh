@@ -62,225 +62,6 @@
 // an instruction that does nothing instead of Zero which is really an ADDI x0, x0, 0
 `define NOP 32'h00000013
 
-///////////////////////////////
-// ---- R10K Components ---- //
-///////////////////////////////
-
-typedef struct packed{
-    logic valid;
-	logic [$clog2(`PHYS_REG_SZ)-1:0] phys_reg;
-	logic ready;
-} TAG;
-
-typedef struct packed{
-    INST              inst;
-    logic [`XLEN-1:0] PC;
-    logic [`XLEN-1:0] NPC; // PC + 4
-
-    ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-    ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-
-    ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
-    logic       rd_mem;        // Does inst read memory?
-    logic       wr_mem;        // Does inst write memory?
-    logic       cond_branch;   // Is inst a conditional branch?
-    logic       uncond_branch; // Is inst an unconditional branch?
-    logic       halt;          // Is this a halt?OPB_IS_I_IMM
-    logic       illegal;       // Is this instruction illegal?
-    logic       csr_op;        // Is this a CSR operation? (we use this to get return code)
-    TAG			t;
-    TAG			t1;
-    TAG			t2;
-    logic [$clog2(`RS_SZ)-1:0] rs_idx;
-    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
-    
-    logic       valid;
-} DECODER_PACKET;
-
-/////////////////////////////////
-// ---- Map Table Packets ---- //
-/////////////////////////////////
-
-//ID -> MT Connections
-typedef struct packed{
-	//Query param
-	logic [4:0] read_idx_1;
-	logic [4:0] read_idx_2;
-	
-	//Write param
-	logic [4:0] write_idx;
-	TAG write_tag;
-	logic write_en;
-}ID_MT_PACKET;
-
-
-
-//MT -> ID Connections
-typedef struct packed{
-	//Query results
-	TAG read_out_1;
-	TAG read_out_2;
-	TAG write_out;
-}MT_ID_PACKET;
-
-typedef struct packed{
-    TAG retire_t;
-    TAG retire_t_old;
-    logic retire_en;
-}IR_MT_PACKET;
-
-///////////////////////////////////////////
-// ---- Reservation Station Packets ---- //
-///////////////////////////////////////////
-
-
-//ID -> RS
-typedef struct packed{
-	DECODER_PACKET decoder_packet;
-	logic write_en;
-}ID_RS_PACKET;
-
-//EX -> RS
-typedef struct packed{
-	logic [$clog2(`RS_SZ)-1:0] remove_idx;
-	logic remove_en;
-}EX_RS_PACKET;
-
-//RS -> ID
-typedef struct packed{
-	logic [$clog2(`RS_SZ)-1:0] free_idx;
-	logic free;
-}RS_ID_PACKET;
-
-//RS -> IS
-typedef struct packed{
-	DECODER_PACKET decoder_packet;
-	logic issue_en;
-}RS_IS_PACKET;
-
-
-//////////////////////////////////////
-// ---- Reorder Buffer Packets ---- //
-//////////////////////////////////////
-
-typedef struct packed{
-    TAG t_in;
-    TAG t_old_in;
-    logic write_en;
-}ID_ROB_PACKET;
-
-typedef struct packed{
-    logic [$clog2(`ROB_SZ)-1:0] complete_idx;
-    logic complete_en;
-}IC_ROB_PACKET;
-
-typedef struct packed{
-    logic [$clog2(`ROB_SZ)-1:0] free_idx;
-    logic free;
-}ROB_ID_PACKET;
-
-typedef struct packed{
-    TAG retire_t;
-    TAG retire_t_old;
-    logic retire_en;
-}ROB_IR_PACKET;
-
-/////////////////////////////////
-// ---- Free List Packets ---- //
-/////////////////////////////////
-typedef struct packed{
-    logic pop_en;
-}ID_FL_PACKET;
-
-typedef struct packed{
-    TAG retire_t;
-    TAG retire_t_old;
-    logic retire_en;
-}IR_FL_PACKET;
-
-typedef struct packed{
-    TAG free_tag;
-    logic free;
-}FL_ID_PACKET;
-
-//////////////////////////////////////////////
-// ---- Physical Register File Packets ---- //
-//////////////////////////////////////////////
-
-typedef struct packed{
-    TAG read_tag_1;
-    TAG read_tag_2;
-}IS_PRF_PACKET;
-
-typedef struct packed{
-    TAG write_tag;
-    logic [`XLEN-1:0] write_data;
-    logic write_en;
-}EX_PRF_PACKET;
-
-typedef struct packed{
-    logic [`XLEN-1:0] read_out_1;
-    logic [`XLEN-1:0] read_out_2;
-}PRF_IS_PACKET;
-
-
-/////////////////////////////
-// ---- Stage Packets ---- //
-/////////////////////////////
-
-typedef struct packed {
-    INST              inst;
-    logic [`XLEN-1:0] PC;
-    logic [`XLEN-1:0] NPC; // PC + 4
-    logic             valid;
-} IF_ID_PACKET;
-
-typedef struct packed {
-    INST              inst;
-    logic [`XLEN-1:0] PC;
-    logic [`XLEN-1:0] NPC; // PC + 4
-
-    logic [`XLEN-1:0] rs1_value; // reg A value
-    logic [`XLEN-1:0] rs2_value; // reg B value
-
-    ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-    ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
-
-    TAG         dest_tag;  // destination tag
-    ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
-    logic       rd_mem;        // Does inst read memory?
-    logic       wr_mem;        // Does inst write memory?
-    logic       cond_branch;   // Is inst a conditional branch?
-    logic       uncond_branch; // Is inst an unconditional branch?
-    logic       halt;          // Is this a halt?
-    logic       illegal;       // Is this instruction illegal?
-    logic       csr_op;        // Is this a CSR operation? (we only used this as a cheap way to get return code)
-    
-    logic [$clog2(`RS_SZ)-1:0] rs_idx;
-    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
-
-    logic       valid;
-} IS_EX_PACKET;
-
-
-typedef struct packed {
-    logic [`XLEN-1:0] result;
-    logic [`XLEN-1:0] NPC;
-
-    logic             take_branch; // Is this a taken branch?
-    // Pass-through from decode stage
-    logic [`XLEN-1:0] rs2_value;
-    logic             wr_mem;
-    TAG               dest_tag;
-    logic             halt;
-    logic             illegal;
-    logic             csr_op;
-    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
-    
-    logic             valid;
-} EX_IC_PACKET;
-
-
 //////////////////////////////////
 // ---- Memory Definitions ---- //
 //////////////////////////////////
@@ -483,5 +264,252 @@ typedef enum logic [4:0] {
     ALU_REMU    = 5'h11  // unused
 } ALU_FUNC;
 
- 
+///////////////////////////////
+// ---- R10K Components ---- //
+///////////////////////////////
+
+typedef struct packed{
+    logic valid;
+	logic [$clog2(`PHYS_REG_SZ)-1:0] phys_reg;
+	logic ready;
+} TAG;
+
+typedef struct packed{
+    INST              inst;
+    logic [`XLEN-1:0] PC;
+    logic [`XLEN-1:0] NPC; // PC + 4
+
+    ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
+    ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+
+    ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
+    logic       rd_mem;        // Does inst read memory?
+    logic       wr_mem;        // Does inst write memory?
+    logic       cond_branch;   // Is inst a conditional branch?
+    logic       uncond_branch; // Is inst an unconditional branch?
+    logic       halt;          // Is this a halt?OPB_IS_I_IMM
+    logic       illegal;       // Is this instruction illegal?
+    logic       csr_op;        // Is this a CSR operation? (we use this to get return code)
+    TAG			t;
+    TAG			t1;
+    TAG			t2;
+    logic [$clog2(`RS_SZ)-1:0] rs_idx;
+    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
+    
+    logic       valid;
+} DECODER_PACKET;
+
+/////////////////////////////////
+// ---- Map Table Packets ---- //
+/////////////////////////////////
+
+//ID -> MT Connections
+typedef struct packed{
+	//Query param
+	logic [4:0] read_idx_1;
+	logic [4:0] read_idx_2;
+	
+	//Write param
+	logic [4:0] write_idx;
+	TAG write_tag;
+	logic write_en;
+}ID_MT_PACKET;
+
+
+
+//MT -> ID Connections
+typedef struct packed{
+	//Query results
+	TAG read_out_1;
+	TAG read_out_2;
+	TAG write_out;
+}MT_ID_PACKET;
+
+typedef struct packed{
+    TAG retire_t;
+    TAG retire_t_old;
+    logic retire_en;
+}IR_MT_PACKET;
+
+///////////////////////////////////////////
+// ---- Reservation Station Packets ---- //
+///////////////////////////////////////////
+
+
+//ID -> RS
+typedef struct packed{
+	DECODER_PACKET decoder_packet;
+	logic write_en;
+}ID_RS_PACKET;
+
+//EX -> RS
+typedef struct packed{
+	logic [$clog2(`RS_SZ)-1:0] remove_idx;
+	logic remove_en;
+}EX_RS_PACKET;
+
+//RS -> ID
+typedef struct packed{
+	logic [$clog2(`RS_SZ)-1:0] free_idx;
+	logic free;
+}RS_ID_PACKET;
+
+//RS -> IS
+typedef struct packed{
+	DECODER_PACKET decoder_packet;
+	logic issue_en;
+}RS_IS_PACKET;
+
+
+//////////////////////////////////////
+// ---- Reorder Buffer Packets ---- //
+//////////////////////////////////////
+
+typedef struct packed{
+    TAG t_in;
+    TAG t_old_in;
+    
+    logic halt;
+	logic wr_mem;
+	logic [4:0] dest_reg_idx;
+	logic [`XLEN-1:0] NPC;
+	
+    logic write_en;
+}ID_ROB_PACKET;
+
+typedef struct packed{
+    logic complete_en;
+    logic [$clog2(`ROB_SZ)-1:0] complete_idx;
+    
+	logic [`XLEN-1:0] result;
+	logic ['XLEN-1:0] rs2_value;
+	logic take_branch;
+	
+}IC_ROB_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`ROB_SZ)-1:0] free_idx;
+    logic free;
+}ROB_ID_PACKET;
+
+typedef struct packed{
+    logic retire_en;
+    TAG retire_t;
+    TAG retire_t_old;
+    
+    logic halt;
+	logic wr_mem;
+	logic [4:0] dest_reg_idx;
+	logic [`XLEN-1:0] NPC;
+	
+	logic [`XLEN-1:0] result;
+	logic ['XLEN-1:0] rs2_value;
+	logic take_branch;
+	
+}ROB_IR_PACKET;
+
+/////////////////////////////////
+// ---- Free List Packets ---- //
+/////////////////////////////////
+typedef struct packed{
+    logic pop_en;
+}ID_FL_PACKET;
+
+typedef struct packed{
+    TAG retire_t;
+    TAG retire_t_old;
+    logic retire_en;
+}IR_FL_PACKET;
+
+typedef struct packed{
+    TAG free_tag;
+    logic free;
+}FL_ID_PACKET;
+
+//////////////////////////////////////////////
+// ---- Physical Register File Packets ---- //
+//////////////////////////////////////////////
+
+typedef struct packed{
+    TAG read_tag_1;
+    TAG read_tag_2;
+}IS_PRF_PACKET;
+
+typedef struct packed{
+    TAG write_tag;
+    logic [`XLEN-1:0] write_data;
+    logic write_en;
+}EX_PRF_PACKET;
+
+typedef struct packed{
+    logic [`XLEN-1:0] read_out_1;
+    logic [`XLEN-1:0] read_out_2;
+}PRF_IS_PACKET;
+
+
+/////////////////////////////
+// ---- Stage Packets ---- //
+/////////////////////////////
+
+typedef struct packed {
+    INST              inst;
+    logic [`XLEN-1:0] PC;
+    logic [`XLEN-1:0] NPC; // PC + 4
+    logic             valid;
+} IF_ID_PACKET;
+
+typedef struct packed {
+    INST              inst;
+    logic [`XLEN-1:0] PC;
+    logic [`XLEN-1:0] NPC; // PC + 4
+
+    logic [`XLEN-1:0] rs1_value; // reg A value
+    logic [`XLEN-1:0] rs2_value; // reg B value
+
+    ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
+    ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+
+    TAG         dest_tag;  // destination tag
+    ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
+    logic       rd_mem;        // Does inst read memory?
+    logic       wr_mem;        // Does inst write memory?
+    logic       cond_branch;   // Is inst a conditional branch?
+    logic       uncond_branch; // Is inst an unconditional branch?
+    logic       halt;          // Is this a halt?
+    logic       illegal;       // Is this instruction illegal?
+    logic       csr_op;        // Is this a CSR operation? (we only used this as a cheap way to get return code)
+    
+    logic [$clog2(`RS_SZ)-1:0] rs_idx;
+    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
+
+    logic       valid;
+} IS_EX_PACKET;
+
+
+typedef struct packed {
+    logic [`XLEN-1:0] result;
+    logic [`XLEN-1:0] NPC;
+
+    logic             take_branch; // Is this a taken branch?
+    // Pass-through from decode stage
+    logic [`XLEN-1:0] rs2_value;
+    logic             wr_mem;
+    TAG               dest_tag;
+    logic             halt;
+    logic             illegal;
+    logic             csr_op;
+    logic [$clog2(`ROB_SZ)-1:0] rob_idx;
+    
+    logic             valid;
+} EX_IC_PACKET;
+
+typedef struct packed {
+    logic [3:0]       completed_insts;
+    EXCEPTION_CODE    error_status;
+    logic [4:0]       wr_idx;
+    logic [`XLEN-1:0] wr_data;
+    logic             wr_en;
+    logic [`XLEN-1:0] NPC;
+}IR_PIPELINE_PACKET;
+
 `endif // __SYS_DEFS_SVH__
