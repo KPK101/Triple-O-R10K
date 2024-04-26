@@ -8,9 +8,8 @@ typedef struct packed {
 	
 	logic complete;
 	logic [`XLEN-1:0] result;
-	logic ['XLEN-1:0] rs2_value;
+	logic [`XLEN-1:0] rs2_value;
 	logic take_branch;
-	
 	
 } ROB_ENTRY;
 
@@ -32,7 +31,7 @@ module rob (
 	logic [$clog2(`ROB_SZ):0] counter;
 	
 	//Handle rob->id
-	assign rob_id_packet.free = counter == `ROB_SZ;
+	assign rob_id_packet.free = counter != `ROB_SZ;
 	
 	//Handle rob->retire output
 	assign rob_ir_packet.retire_en = rob[head_idx].complete;

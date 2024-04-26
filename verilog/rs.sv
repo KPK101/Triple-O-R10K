@@ -23,7 +23,11 @@ module rs(
 	
 	output RS_ID_PACKET rs_id_packet,
 	
-	output RS_IS_PACKET rs_is_packet
+	output RS_IS_PACKET rs_is_packet,
+	
+	output DECODER_PACKET tout,
+	
+	output logic tlog
 );
 	
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;
@@ -37,9 +41,9 @@ module rs(
 	
 	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
 							    id_rs_packet.decoder_packet.rd_mem	? 1 :
-							    !is_mult			                ? 0 :
-							    rs_table[3].busy	                ? 3 : 4;
-	assign rs_id_packet.free = !rs_table[free_idx].busy;
+							    is_mult			                ? 0 :
+							    rs_table[4].busy	                ? 3 : 4;
+	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
 
 	//Handle rs -> is issue logic
 	always_comb begin
@@ -53,6 +57,13 @@ module rs(
 			end
 		end
 	end
+	
+	always_comb begin
+	    tout = rs_table[0].decoder_packet;
+	    tlog = (!rs_table[0].issued) &&
+			   (!rs_table[0].decoder_packet.t1.valid || rs_table[0].decoder_packet.t1.ready) && 
+			   (!rs_table[0].decoder_packet.t2.valid || rs_table[0].decoder_packet.t2.ready);
+	end
 
 	always_ff @(posedge clock) begin
 		//Handle reset
@@ -64,13 +75,13 @@ module rs(
 			//Handle CDB
 			if (cdb_en) begin
 				foreach (rs_table[i]) begin
-					if (rs_table[i].decoder_packet.t1.valid && 
-					    rs_table[i].decoder_packet.t1.phys_reg == cdb.phys_reg) begin
+					if (rs_table[i].decoder_packet.t1.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t1.ready <= 1;
+						rs_table[i].decoder_packet.t1.valid <= 1;
 					end
-					if (rs_table[i].decoder_packet.t2.valid && 
-					    rs_table[i].decoder_packet.t2.phys_reg == cdb.phys_reg) begin
+					if (rs_table[i].decoder_packet.t2.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t2.ready <= 1;
+						rs_table[i].decoder_packet.t2.valid <= 1;
 					end
 				end
 			end
@@ -83,6 +94,7 @@ module rs(
 			//Handle rs -> id writes
 			if (rs_id_packet.free && id_rs_packet.write_en) begin
 				rs_table[rs_id_packet.free_idx].busy   <= 1'b1;
+				rs_table[rs_id_packet.free_idx].issued   <= 1'b0;
 				rs_table[rs_id_packet.free_idx].decoder_packet    <= id_rs_packet.decoder_packet;
 			end
 			

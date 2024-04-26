@@ -44,7 +44,7 @@ module free_list (
 			end
 		end else if (interrupt) begin
 		    foreach (phys_reg_free[i]) begin
-		        phys_reg_free[i] <= phys_reg_arch_free[i]
+		        phys_reg_free[i] <= phys_reg_arch_free[i];
 		    end
 		end else begin
 			//When pop is enabled, set current free tag to be not free

@@ -101,7 +101,7 @@ module decoder (
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_AND;
-                endhas_dest_reg
+                end
                 `RV32_ORI: begin
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
@@ -118,7 +118,7 @@ module decoder (
                     alu_func   = ALU_SLL;
                 end
                 `RV32_SRLI: begin
-                    has_dest   = `TRUE;has_dest_reg
+                    has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_SRL;
                 end
@@ -187,7 +187,7 @@ module decoder (
                 end
                 `WFI: begin
                     halt = `TRUE;
-                endhas_dest_reg
+                end
                 default: begin
                     illegal = `TRUE;
                 end
@@ -210,7 +210,7 @@ module stage_id (
     output ID_MT_PACKET id_mt_packet,
     output ID_RS_PACKET id_rs_packet,
     output ID_ROB_PACKET id_rob_packet,
-    output ID_FL_PACKET id_fl_packet,
+    output ID_FL_PACKET id_fl_packet
 );
 
     //Create decoder_packet for rs
@@ -254,8 +254,8 @@ module stage_id (
                        decoder_packet.opb_select == OPB_IS_S_IMM);
     
     //Assign Map Table Output
-    assign id_mt_packet.read_idx_1 = need_rs1 ? decoder_packet.inst.r.rs1 : 'ZERO_REG;
-    assign id_mt_packet.read_idx_2 = need_rs2 ? decoder_packet.inst.r.rs2 : 'ZERO_REG;
+    assign id_mt_packet.read_idx_1 = need_rs1 ? decoder_packet.inst.r.rs1 : `ZERO_REG;
+    assign id_mt_packet.read_idx_2 = need_rs2 ? decoder_packet.inst.r.rs2 : `ZERO_REG;
     assign id_mt_packet.write_idx = has_dest_reg ? if_id_reg.inst.r.rd : `ZERO_REG;
     assign id_mt_packet.write_tag = fl_id_packet.free_tag;
     assign id_mt_packet.write_en = free && has_dest_reg;
