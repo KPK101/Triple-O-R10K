@@ -1,13 +1,10 @@
-`timescale 1ns / 1ps
 `include "verilog/sys_defs.svh"
 `include "verilog/ISA.svh"
 
-module dispatch_tb;
+module testbench;
 
 // Define testbench signals based on the map_table module's interface
     TAG cdb;
-    DECODER_PACKET tout;
-    logic tlog;
     logic cdb_en, clock, reset;
     IF_ID_PACKET if_id_reg;
     //Map Table
@@ -41,9 +38,7 @@ module dispatch_tb;
         .id_rs_packet(id_rs_packet),
         .ex_rs_packet(ex_rs_packet),
         .rs_id_packet(rs_id_packet),
-        .rs_is_packet(rs_is_packet),
-        .tout(tout),
-        .tlog(tlog)
+        .rs_is_packet(rs_is_packet)
     );
     
     //Reorder Buffer
@@ -91,81 +86,69 @@ module dispatch_tb;
         .id_fl_packet   (id_fl_packet)
     );
 
-// Clock generationif_
-initial begin
-    clock = 0;
-    forever #10 clock = ~clock;
-end
+
+    always begin
+        #(`CLOCK_PERIOD/2.0);
+        clock = ~clock;
+    end
 
 
 // Test stimulus
-initial begin
-    // Initialize inputs
-    
-$display("STARTING TESTBENCH!");
+    initial begin
+        // Initialize inputs
+        $monitor(
+"@@@\tTime:%4.0f clock:%b reset:%b \n\
+\tcdb:%b cdb_en:%b \n\
+\trs_wr_en:%b rs_wr_t1:%b rs_wr_t2:%b rs_wr_idx:%b\n\
+\trs_is_en:%b rs_is_t1:%b rs_is_t2:%b rs_is_idx:%b\n\
+",      
+                  $time, clock, reset,
+                  cdb, cdb_en,
+                  id_rs_packet.write_en, id_rs_packet.decoder_packet.t1, id_rs_packet.decoder_packet.t2, id_rs_packet.decoder_packet.rs_idx,
+                  rs_is_packet.issue_en, rs_is_packet.decoder_packet.t1, rs_is_packet.decoder_packet.t2, rs_is_packet.decoder_packet.rs_idx
+                  );
+       
+        $display("STARTING TESTBENCH!");
 
-    reset = 1;
-$display("@@@ Time:%4.0f clock:%b reset:%b RS_T1_PREG:%d RS_T2_PREG:%d RS_T_PREG:%d FREE_LIST_POPEN:%d FREE_LIST_PREG:%d FREE_LIST_FREE:%d", $time, clock, reset, id_rs_packet.decoder_packet.t1.phys_reg, id_rs_packet.decoder_packet.t2.phys_reg, id_rs_packet.decoder_packet.t.phys_reg, id_fl_packet.pop_en, fl_id_packet.free_tag.phys_reg, fl_id_packet.free, id_rob_packet.write_en);
-
-$monitor("@@@ Time:%4.0f clock:%b reset:%b RS_T1_PREG:%b RS_T2_PREG:%b RS_T_PREG:%d FREE_LIST_POPEN:%d FREE_LIST_PREG:%d FREE_LIST_FREE:%d ID_ROB_WRITE_EN:%d DECODER_PACKET_VALID:%d RS_IS_ISSUE_EN:%d INST:%b tout1:%b tout2:%b tlog:%b\n", $time, clock, reset, id_rs_packet.decoder_packet.t1, id_rs_packet.decoder_packet.t2, id_rs_packet.decoder_packet.t.phys_reg, id_fl_packet.pop_en, fl_id_packet.free_tag.phys_reg, fl_id_packet.free, id_rob_packet.write_en, id_rs_packet.decoder_packet.valid, rs_is_packet.issue_en, rs_is_packet.decoder_packet.inst, tout.t1, tout.t2, tlog);
-    // Release reset
-    #10;
-    /*@(posedge clock)//add r3 <-r2+r1
-    reset = 0;
-    if_id_reg.inst = 32'b0000000_00010_00001_000_00011_0110011;
-    if_id_reg.PC = 0;
-    if_id_reg.NPC = 4;
-    if_id_reg.valid = 1;*/
-    @(posedge clock)//addi r6 <-r6+1
-    reset = 0;
-    if_id_reg.inst = 32'b000000000101_00110_000_00110_0010011;
-    if_id_reg.PC = 0;
-    if_id_reg.NPC = 4;
-    if_id_reg.valid = 1;
-     @(posedge clock)//addi r7 <-r7+1
-    reset = 0;
-    if_id_reg.inst = 32'b000000000101_00111_000_00111_0010011;
-    if_id_reg.PC = 0;
-    if_id_reg.NPC = 4;
-    if_id_reg.valid = 1;
-    /*@(posedge clock)//ld r7 <-r7+1
-    reset = 0;
-    if_id_reg.inst = 32'b00000000000000111010001100000011;
-    if_id_reg.PC = 0;
-    if_id_reg.NPC = 4;
-    if_id_reg.valid = 1;*/
-    @(posedge clock)//mult r7 <-r7+1
-    reset = 0;
-    if_id_reg.inst = 32'b0000001_00110_00111_000_01111_0110011;
-    if_id_reg.PC = 0;
-    if_id_reg.NPC = 4;
-    if_id_reg.valid = 1;
-    @(posedge clock)
-   
-   // @(posedge clock)
-    cdb_en = 1;
-    cdb.valid = 1;
-    cdb.phys_reg = 33;
-    cdb.ready = 1;
-    @(posedge clock)
-    cdb_en = 1;
-    cdb.valid = 1;
-    cdb.phys_reg = 32;
-    cdb.ready = 1;
-    @(posedge clock)
-      
-    //cdb_en = 0;
-	// Continue simulation for a while to observe behavior
-  //  #20;
-    $display("\nENDING TESTBENCH: SUCCESS!");
-    $display("@@@ Passed\n");
-    $finish; // End simulation
-end
-
-// Initialize signals for waveform generation
-initial begin
-    $dumpfile("dispatch_tb.vcd");
-    $dumpvars(0, dispatch_tb);
-end
+        reset = 1;
+        clock = 1;
+        cdb_en = 0;
+        cdb.valid = 0;
+        cdb.phys_reg = 0;
+        cdb.ready = 0;
+        
+        // Release reset
+        @(negedge clock);
+        reset = 0;
+        if_id_reg.inst = 32'b000000000101_00110_000_00110_0010011;
+        if_id_reg.PC = 0;
+        if_id_reg.NPC = 4;
+        if_id_reg.valid = 1;
+        @(negedge clock);//addi r7 <-r7+1
+        reset = 0;
+        if_id_reg.inst = 32'b000000000101_00111_000_00111_0010011;
+        if_id_reg.PC = 0;
+        if_id_reg.NPC = 4;
+        if_id_reg.valid = 1;
+        @(negedge clock);//mult r7 <-r7+1
+        reset = 0;
+        if_id_reg.inst = 32'b0000001_00110_00111_000_01111_0110011;
+        if_id_reg.PC = 0;
+        if_id_reg.NPC = 4;
+        if_id_reg.valid = 1;
+        cdb_en = 1;
+        cdb.valid = 1;
+        cdb.phys_reg = 33;
+        cdb.ready = 1;
+        @(negedge clock);
+        cdb_en = 1;
+        cdb.valid = 1;
+        cdb.phys_reg = 32;
+        cdb.ready = 1;
+        @(negedge clock);
+        $display("\nENDING TESTBENCH: SUCCESS!");
+        $display("@@@ Passed\n");
+        $finish; // End simulation
+    end
 
 endmodule

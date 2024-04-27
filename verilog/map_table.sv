@@ -19,10 +19,27 @@ module map_table (
 	TAG [31:0] arch_reg_map;
 	
 	//Handle mt -> id output
-	assign mt_id_packet.read_out_1 = reg_map[id_mt_packet.read_idx_1];
-	assign mt_id_packet.read_out_2 = reg_map[id_mt_packet.read_idx_2];
 	assign mt_id_packet.write_out = reg_map[id_mt_packet.write_idx];
 	
+	always_comb begin
+	    if(cdb_en) begin
+	        if(reg_map[id_mt_packet.read_idx_1].phys_reg == cdb.phys_reg) begin
+	            mt_id_packet.read_out_1 = cdb;
+	        end else begin 
+	            mt_id_packet.read_out_1  = reg_map[id_mt_packet.read_idx_1];
+	        end
+	        
+	        if(reg_map[id_mt_packet.read_idx_2].phys_reg == cdb.phys_reg) begin
+	            mt_id_packet.read_out_2 = cdb;
+	        end else begin 
+	            mt_id_packet.read_out_2  = reg_map[id_mt_packet.read_idx_2];
+	        end
+	    end else begin
+	        mt_id_packet.read_out_1 = reg_map[id_mt_packet.read_idx_1];
+	        mt_id_packet.read_out_2 = reg_map[id_mt_packet.read_idx_2];
+	        
+	    end
+	end
 	
 	always_ff @(posedge clock) begin
 	    //Handle reset

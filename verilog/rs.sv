@@ -23,11 +23,7 @@ module rs(
 	
 	output RS_ID_PACKET rs_id_packet,
 	
-	output RS_IS_PACKET rs_is_packet,
-	
-	output DECODER_PACKET tout,
-	
-	output logic tlog
+	output RS_IS_PACKET rs_is_packet
 );
 	
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;
@@ -56,13 +52,6 @@ module rs(
 				rs_is_packet.issue_en = 1;
 			end
 		end
-	end
-	
-	always_comb begin
-	    tout = rs_table[0].decoder_packet;
-	    tlog = (!rs_table[0].issued) &&
-			   (!rs_table[0].decoder_packet.t1.valid || rs_table[0].decoder_packet.t1.ready) && 
-			   (!rs_table[0].decoder_packet.t2.valid || rs_table[0].decoder_packet.t2.ready);
 	end
 
 	always_ff @(posedge clock) begin
