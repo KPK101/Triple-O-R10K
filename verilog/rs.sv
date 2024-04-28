@@ -1,6 +1,6 @@
-`include "verilog/sys_defs.svh"
-`include "verilog/ISA.svh"
-
+//`include "verilog/sys_defs.svh"
+//`include "verilog/ISA.svh"
+//`include "sys_defs.svh"
 typedef struct packed{
 	logic busy;
 	logic issued;
@@ -10,19 +10,14 @@ typedef struct packed{
 module rs(
 	input clock,
 	input reset,
-	
-	input interrupt,
-	
 	//bus input
+	input interrupt,
 	input TAG cdb,
-	input logic cdb_en,
-	
+	input cdb_en,
 	input ID_RS_PACKET id_rs_packet,
-	
 	input EX_RS_PACKET ex_rs_packet,
 	
 	output RS_ID_PACKET rs_id_packet,
-	
 	output RS_IS_PACKET rs_is_packet
 );
 	
@@ -30,22 +25,21 @@ module rs(
 
 	//Handle rs -> id logic
 	logic is_mult;
-	assign is_mult =        id_rs_packet.decoder_packet.alu_func == ALU_MUL ||
-							id_rs_packet.decoder_packet.alu_func == ALU_MULH ||
-							id_rs_packet.decoder_packet.alu_func == ALU_MULHSU ||
-							id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
+	assign is_mult = id_rs_packet.decoder_packet.alu_func == ALU_MUL || id_rs_packet.decoder_packet.alu_func == ALU_MULH ||
+			 id_rs_packet.decoder_packet.alu_func == ALU_MULHSU || id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
 	
-	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
-							    id_rs_packet.decoder_packet.rd_mem	? 1 :
-							    !is_mult			                ? 0 :
-							    rs_table[3].busy	                ? 3 : 4;
-	assign rs_id_packet.free = !rs_table[free_idx].busy;
+	assign rs_id_packet.free_idx   = id_rs_packet.decoder_packet.wr_mem ? 2 :
+					 id_rs_packet.decoder_packet.rd_mem ? 1 :
+					 !is_mult			    ? 0 :
+					 rs_table[3].busy	            ? 4 : 3; // switched 3 and 4
+
+	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy; 
 
 	//Handle rs -> is issue logic
 	always_comb begin
 		rs_is_packet.issue_en = 0;
 		foreach (rs_table[i]) begin
-			if((!rs_table[i].issued) &&
+			if((!rs_table[i].issued) && (rs_table[i].busy) && 
 			   (!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
 			   (!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready)) begin
 				rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
@@ -81,14 +75,14 @@ module rs(
 			end
 			
 			//Handle rs -> id writes
-			if (rs_id_packet.free && id_rs_packet.write_en) begin
-				rs_table[rs_id_packet.free_idx].busy   <= 1'b1;
-				rs_table[rs_id_packet.free_idx].decoder_packet    <= id_rs_packet.decoder_packet;
+			if (rs_id_packet.free && id_rs_packet.write_en) begin 
+				rs_table[rs_id_packet.free_idx].busy <= 1;
+				rs_table[rs_id_packet.free_idx].decoder_packet <= id_rs_packet.decoder_packet;
 			end
 			
 			//Handle ex -> id removes
 			if (ex_rs_packet.remove_en) begin
-				rs_table[ex_rs_packet.remove_idx].busy <= 0;
+				rs_table[ex_rs_packet.remove_idx].busy <= 0; 
 			end
 		end
 	end
