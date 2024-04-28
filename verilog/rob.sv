@@ -25,15 +25,18 @@ module rob (
 	output ROB_ID_PACKET rob_id_packet,
 	
 	output ROB_IR_PACKET rob_ir_packet, 
+
+	output logic [$clog2(`ROB_SZ)-1:0] head_idx,
+	output logic [$clog2(`ROB_SZ)-1:0] tail_idx,
 	output logic [$clog2(`ROB_SZ):0] counter  
 	//output logic [$clog2(`ROB_SZ):0] next_counter
 );
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
-	logic [$clog2(`ROB_SZ)-1:0] head_idx;
+	//logic [$clog2(`ROB_SZ)-1:0] head_idx;
 	//logic [$clog2(`ROB_SZ):0] next_counter;
 	//logic [$clog2(`ROB_SZ):0] counter;
-	logic [$clog2(`ROB_SZ)-1:0] tail_idx;
+	//logic [$clog2(`ROB_SZ)-1:0] tail_idx;
 	
 	//Handle rob->id
 	assign rob_id_packet.free = (counter != `ROB_SZ);
@@ -52,11 +55,7 @@ module rob (
 	assign rob_ir_packet.result = rob[head_idx].result;
 	assign rob_ir_packet.rs2_value = rob[head_idx].rs2_value;
 	assign rob_ir_packet.take_branch = rob[head_idx].take_branch;
-	
-	//Handle internal counter
-	//assign next_counter = rob_ir_packet.retire_en && !(rob_id_packet.free && id_rob_packet.write_en) ? counter - 1 :
-         //                 (rob_id_packet.free && id_rob_packet.write_en) && !rob_ir_packet.retire_en ? counter + 1 : counter;
-	//assign next_counter = rob_ir_packet.retire_en ? counter-1 : rob_id_packet.free && id_rob_packet.write_en ? counter + 1:  counter ;
+
 	
 	always_ff @(posedge clock) begin
 		if (reset) begin
@@ -75,15 +74,11 @@ module rob (
 				rob[tail_idx].t <= id_rob_packet.t_in;
 				rob[tail_idx].t_old <= id_rob_packet.t_old_in;
 				rob[tail_idx].complete <= 0;
-				
 				rob[tail_idx].halt <= id_rob_packet.halt;
 				rob[tail_idx].wr_mem <= id_rob_packet.wr_mem;
 				rob[tail_idx].dest_reg_idx <= id_rob_packet.dest_reg_idx;
 				rob[tail_idx].NPC <= id_rob_packet.NPC;
 				tail_idx <= tail_idx + 1;
-
-				if (!rob_ir_packet.retire_en) counter <= counter + 1;
-				else if (rob_ir_packet.retire_en) counter <= counter;
 			end
 			//Handle ic->rob
 			if (ic_rob_packet.complete_en) begin
@@ -91,19 +86,19 @@ module rob (
 				rob[ic_rob_packet.complete_idx].result <= ic_rob_packet.result;
 				rob[ic_rob_packet.complete_idx].rs2_value <= ic_rob_packet.rs2_value;
 				rob[ic_rob_packet.complete_idx].take_branch <= ic_rob_packet.take_branch;
-				
 			end
-			
 			//Handle rob->retire update
 			if (rob_ir_packet.retire_en) begin
 				head_idx <= head_idx + 1;
-				//counter <= counter - 1;
-				counter <= 0; // next cycle
-				//if (!(rob_id_packet.free && id_rob_packet.write_en)) counter <= counter - 1;
-				//else counter <= counter;
 			end
-			//Update Counter
-			//counter <= next_counter;
+
+			if (tail_idx == 2'b11) tail_idx <= 0;
+
+			//Counter logic 
+			if (rob_id_packet.free && id_rob_packet.write_en && !rob[head_idx].complete) counter <= counter + 1;		
+			else if (rob_id_packet.free && id_rob_packet.write_en && rob[head_idx].complete) counter <= counter;
+			else if (!rob_id_packet.free && !id_rob_packet.write_en && rob[head_idx].complete) counter <= counter - 1;
+				
 		end
 	end
 endmodule
