@@ -170,6 +170,9 @@ TESTED_MODULES =  stage_ex stage_is prf stage_id rs map_table rs rob free_list
 # Helper function:
 DEPS = $(1).simv $(1).cov synth/$(1).vg
 
+STAGE_EX_DEPS = verilog/stage_ex.sv verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
+$(call DEPS,stage_ex): $(STAGE_EX_DEPS)
+
 STAGE_IS_DEPS = verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
 $(call DEPS,stage_is): $(STAGE_IS_DEPS)
 

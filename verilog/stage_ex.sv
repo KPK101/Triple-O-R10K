@@ -76,7 +76,7 @@ module load (
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,
     output [`XLEN-1:0] load2Dmem_data,
-    output [`XLEN-1:0] result
+    output logic [`XLEN-1:0] result
 );
     logic rd_unsigned;
     
@@ -88,7 +88,7 @@ module load (
  
     
     always_comb begin
-        result = Dmem2proc_data;
+        //result = Dmem2proc_data;
         if (rd_unsigned) begin
             // unsigned: zero-extend the data
             if (load2Dmem_size == BYTE) begin
@@ -149,6 +149,7 @@ module stage_ex(
     logic take_conditional;
     logic [`XLEN-1:0] alu_result, mult_result, load_result;
     logic is_mult;
+    logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
     
    /* assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
@@ -222,10 +223,6 @@ module stage_ex(
     assign ex_prf_packet.write_data = ex_ic_packet.result;
     assign ex_prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
 
-
-							
-    //logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
-    
     always_comb begin
         case (is_ex_reg.opa_select)
             OPA_IS_RS1:  opa_mux_out = is_ex_reg.rs1_value;
