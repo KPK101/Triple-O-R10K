@@ -14,7 +14,7 @@ module alu (
     assign signed_opb   = opb;
 
     always_comb begin
-	if(enable) begin
+	//if(enable) begin // enable signal? 
         case (func)
             ALU_ADD:    result = opa + opb;
             ALU_SUB:    result = opa - opb;
@@ -28,7 +28,8 @@ module alu (
             ALU_SRA:    result = signed_opa >>> opb[4:0];
             default:    result = `XLEN'hfacebeec;  // here to prevent latches
         endcase
-	end
+	//end
+     end
 endmodule
 
 
@@ -39,7 +40,10 @@ module mult (
 
     output logic [`XLEN-1:0] result
 );
+    logic signed [`XLEN-1:0]   signed_opa, signed_opb;
 
+    assign signed_opa   = opa;
+    assign signed_opb   = opb;
     logic signed [2*`XLEN-1:0] signed_mul, mixed_mul;
     logic        [2*`XLEN-1:0] unsigned_mul;
 
@@ -66,12 +70,13 @@ module load (
     input [`XLEN-1:0] opa,
     input [`XLEN-1:0] opb,
     input [`XLEN-1:0] Dmem2load_data,
+    input [`XLEN-1:0] Dmem2proc_data,
     
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,
     output [`XLEN-1:0] load2Dmem_data,
-    output [`XLEN-1:0] result;
+    output [`XLEN-1:0] result
 );
     logic rd_unsigned;
     
@@ -137,60 +142,18 @@ module stage_ex(
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,
-    output [`XLEN-1:0] load2Dmem_data,
+    output [`XLEN-1:0] load2Dmem_data
 );
 
-    // Pass-throughs
-    assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
-					  is_mult ? mult_result : alu_result;
-    assign ex_ic_packet.NPC    = is_ex_reg.NPC;
-    assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
-    assign ex_ic_packet.rs2_value = is_ex_reg.rs2_value;
-    assign ex_ic_packet.wr_mem = is_ex_reg.wr_mem;
-    assign ex_ic_packet.dest_tag = is_ex_reg.dest_tag;
-    assign ex_ic_packet.halt = is_ex_reg.halt;
-    assign ex_ic_packet.illegal = is_ex_reg.illegal;
-    assign ex_ic_packet.csr_op = is_ex_reg.csr_op;
-    assign ex_ic_packet.rob_idx = is_ex_reg.rob_idx;
     
-    assign ex_rs_packet.remove_idx = is_ex_reg.rs_idx;
-    assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
-    
-    assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
-    assign ex_prf_packet.write_data = ic_packet.result;
-    assign ex_prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
-
+    logic take_conditional;
+    logic [`XLEN-1:0] alu_result, mult_result, load_result;
     logic is_mult;
     
     assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULHSU ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULHU;
-							
-    logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
-    
-    always_comb begin
-        case (id_ex_reg.opa_select)
-            OPA_IS_RS1:  opa_mux_out = is_ex_reg.rs1_value;
-            OPA_IS_NPC:  opa_mux_out = is_ex_reg.NPC;
-            OPA_IS_PC:   opa_mux_out = is_ex_reg.PC;
-            OPA_IS_ZERO: opa_mux_out = 0;
-            default:     opa_mux_out = `XLEN'hdeadface; // dead face
-        endcase
-        
-        case (id_ex_reg.opb_select)
-            OPB_IS_RS2:   opb_mux_out = is_ex_reg.rs2_value;
-            OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(is_ex_reg.inst);
-            OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(is_ex_reg.inst);
-            OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(is_ex_reg.inst);
-            OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(is_ex_reg.inst);
-            OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(is_ex_reg.inst);
-            default:      opb_mux_out = `XLEN'hfacefeed; // face feed
-        endcase
-    end
-    
-    logic take_conditional;
-    logic [`XLEN-1:0] alu_result, mult_result, load_result;
 
 
     // Instantiate ALU 
@@ -233,6 +196,51 @@ module stage_ex(
 
         .take(take_conditional)
     );
+
+    // Pass-throughs
+    assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
+					  is_mult ? mult_result : alu_result;
+    assign ex_ic_packet.NPC    = is_ex_reg.NPC;
+    assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
+    assign ex_ic_packet.rs2_value = is_ex_reg.rs2_value;
+    assign ex_ic_packet.wr_mem = is_ex_reg.wr_mem;
+    assign ex_ic_packet.dest_tag = is_ex_reg.dest_tag;
+    assign ex_ic_packet.halt = is_ex_reg.halt;
+    assign ex_ic_packet.illegal = is_ex_reg.illegal;
+    assign ex_ic_packet.csr_op = is_ex_reg.csr_op;
+    assign ex_ic_packet.rob_idx = is_ex_reg.rob_idx;
+    
+    assign ex_rs_packet.remove_idx = is_ex_reg.rs_idx;
+    assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
+    
+    assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
+    assign ex_prf_packet.write_data = ex_ic_packet.result;
+    assign ex_prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
+
+
+							
+    //logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
+    
+    always_comb begin
+        case (id_ex_reg.opa_select)
+            OPA_IS_RS1:  opa_mux_out = is_ex_reg.rs1_value;
+            OPA_IS_NPC:  opa_mux_out = is_ex_reg.NPC;
+            OPA_IS_PC:   opa_mux_out = is_ex_reg.PC;
+            OPA_IS_ZERO: opa_mux_out = 0;
+            default:     opa_mux_out = `XLEN'hdeadface; // dead face
+        endcase
+        
+        case (id_ex_reg.opb_select)
+            OPB_IS_RS2:   opb_mux_out = is_ex_reg.rs2_value;
+            OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(is_ex_reg.inst);
+            OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(is_ex_reg.inst);
+            OPB_IS_B_IMM: opb_mux_out = `RV32_signext_Bimm(is_ex_reg.inst);
+            OPB_IS_U_IMM: opb_mux_out = `RV32_signext_Uimm(is_ex_reg.inst);
+            OPB_IS_J_IMM: opb_mux_out = `RV32_signext_Jimm(is_ex_reg.inst);
+            default:      opb_mux_out = `XLEN'hfacefeed; // face feed
+        endcase
+    end
+
     
 
     

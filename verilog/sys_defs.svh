@@ -502,6 +502,14 @@ typedef struct packed {
     
     logic             valid;
 } EX_IC_PACKET;
+ 
+
+typedef struct packed {
+    TAG         write_tag; 
+    logic write_en;
+    logic [`XLEN-1:0] write_data;
+    
+} EX_PRF_PACKET;
 
 typedef struct packed {
     logic [3:0]       completed_insts;

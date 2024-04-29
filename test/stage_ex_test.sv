@@ -113,7 +113,7 @@ module testbench;
     );
 
     //EXECUTE
-	stage_ex stage_is_0 (
+	stage_ex stage_ex_0 (
         // Inputs
         .is_ex_reg      (is_ex_reg),
 
@@ -136,13 +136,12 @@ module testbench;
         $monitor(
 "@@@\tTime:%4.0f clock:%b reset:%b \n\
 \tcdb:%b cdb_en:%b \n\
-\trs_is_en:%b rs_is_t1:%b rs_is_t2:%b rs_is_idx:%b\n\
-\tis_prf_t1:%d is_prf_t2:%d prf_is_1:%d prf_is_2:%d\n\
+\tex_result: %d ex_rs2_value: %d ex_rs_remove: %b \n\
+\tex_prf_write: %b ex_prf_data: %d\n\
 ",      
                   $time, clock, reset,
                   cdb, cdb_en,
-                  rs_is_packet.issue_en, rs_is_packet.decoder_packet.t1, rs_is_packet.decoder_packet.t2, rs_is_packet.decoder_packet.rs_idx,
-                  is_prf_packet.read_tag_1.phys_reg, is_prf_packet.read_tag_2.phys_reg, prf_is_packet.read_out_1, prf_is_packet.read_out_2
+                  ex_ic_packet.result, ex_ic_packet.rs2_value, ex_rs_packet.remove_en, ex_prf_packet.write_en, ex_prf_packet.write_data
                   );
        
         $display("STARTING TESTBENCH!");

@@ -164,7 +164,7 @@ GREP = grep -E --color=auto
 
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
-TESTED_MODULES =  stage_is prf stage_id rs map_table rs rob free_list  
+TESTED_MODULES =  stage_ex stage_is prf stage_id rs map_table rs rob free_list  
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
