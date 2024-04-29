@@ -439,7 +439,7 @@ typedef struct packed{
     TAG write_tag;
     logic [`XLEN-1:0] write_data;
     logic write_en;
-}EX_PRF_PACKET;
+}IC_PRF_PACKET;
 
 typedef struct packed{
     logic [`XLEN-1:0] read_out_1;

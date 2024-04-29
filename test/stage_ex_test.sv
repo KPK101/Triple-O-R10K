@@ -86,7 +86,7 @@ module testbench;
         .id_fl_packet   (id_fl_packet)
     );
 
-   
+
     always begin
         #(`CLOCK_PERIOD/2.0);
         clock = ~clock;

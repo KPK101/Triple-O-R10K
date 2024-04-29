@@ -192,7 +192,7 @@ module pipeline (
             proc2mem_addr    = proc2Imem_addr;
 `ifndef CACHE_MODE
             proc2mem_size    = DOUBLE;          // instructions load a full memory line (64 bits)
-`endif
+`endifis_packet
         end
         proc2mem_data = {32'b0, proc2Dmem_data};
     end
@@ -289,11 +289,11 @@ module pipeline (
     stage_is stage_is_0 (
         // Inputs
         .rs_is_packet      (rs_is_packet),
-        .prf_is_packet   (prf_is_packet)
+        .prf_is_packet   (prf_is_packet),
 
         // Outputs
         .is_prf_packet   (is_prf_packet),
-        .is_packet   (is_packet)
+        .is_ex_packet   (is_packet)
     );
     
     //////////////////////////////////////////////////

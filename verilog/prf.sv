@@ -1,6 +1,7 @@
+`include "verilog/sys_defs.svh"
 module prf(
     input             clock, // system clock
-    
+    input             reset,
     input IS_PRF_PACKET is_prf_packet,
     input IC_PRF_PACKET ic_prf_packet,
     
@@ -20,7 +21,7 @@ module prf(
         end
         
         //Read Port 2
-        if (read_tag_2.phys_reg == 0) begin
+        if (is_prf_packet.read_tag_2.phys_reg == 0) begin
             prf_is_packet.read_out_2 = 0;
         end else if (ic_prf_packet.write_en && (ic_prf_packet.write_tag.phys_reg == is_prf_packet.read_tag_2.phys_reg)) begin
             prf_is_packet.read_out_2 = ic_prf_packet.write_data; // internal forwarding
@@ -31,6 +32,11 @@ module prf(
     
     //Write port
     always_ff @(posedge clock) begin
+        if(reset) begin
+            foreach(registers[i])begin
+                registers[i]<=32'd0;
+            end
+        end
         if (ic_prf_packet.write_en && ic_prf_packet.write_tag.phys_reg != 0) begin
             registers[ic_prf_packet.write_tag.phys_reg] <= ic_prf_packet.write_data;
         end
