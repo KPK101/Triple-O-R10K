@@ -60,7 +60,7 @@ module map_table (
 				    if (arch_reg_map[i].phys_reg == ir_mt_packet.retire_t_old.phys_reg) begin
 					    arch_reg_map[i] <= ir_mt_packet.retire_t;
                         arch_reg_map[i].valid <= 1'b1;
-                        arch_reg_map[i].ready <= 1'b1;
+                        arch_reg_map[i].ready <= 1'b1;	
 				    end
 			    end
 			end

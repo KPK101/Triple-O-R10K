@@ -164,7 +164,7 @@ GREP = grep -E --color=auto
 
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
-TESTED_MODULES = rob
+TESTED_MODULES = rob rs
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:

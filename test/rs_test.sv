@@ -66,6 +66,7 @@ module rs_test;
 	cdb_en = 1'b0;
 	id_rs.write_en = 1'b1;
 	id_rs.decoder_packet.wr_mem = 1; // free_idx 2 
+	id_rs.decoder_packet.rd_mem = 0; // free_idx 1
 	//id_rs.decoder_packet.alu_func = ALU_MUL; // index 4
 	ex_rs.remove_idx = 0;
 	ex_rs.remove_en =0;
@@ -80,7 +81,7 @@ module rs_test;
 	ex_rs.remove_idx = 0;
 	ex_rs.remove_en =0;
 
-	// fourth 195 - alu mult 
+	// fourth 195 - alu mult & remove at the same time
 	@(posedge clock)
 	interrupt = 1'b0;
 	cdb_en = 1'b0;
@@ -91,15 +92,15 @@ module rs_test;
 	ex_rs.remove_idx = 0;
 	ex_rs.remove_en =0;
 
-	// fifth 225 - read remove
+	// fifth 225 - stall -> but still should write to index 3 
 	@(posedge clock)
 	interrupt = 1'b0;
 	cdb_en = 1'b0;
 	id_rs.write_en = 1'b0;
 	id_rs.decoder_packet.wr_mem = 0; // free_idx 2 
 	id_rs.decoder_packet.rd_mem = 0; // free_idx 1
-	ex_rs.remove_idx = 1;
-	ex_rs.remove_en =1;
+	ex_rs.remove_idx = 0;
+	ex_rs.remove_en =0;
 	
 	// sixth 255 - non mult alu 
 	@(posedge clock)

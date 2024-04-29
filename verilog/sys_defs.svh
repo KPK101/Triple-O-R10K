@@ -24,7 +24,7 @@
 `define N 1
 
 // sizes
-`define ROB_SZ 32
+`define ROB_SZ 4
 `define RS_SZ 5
 `define PHYS_REG_SZ (32 + `ROB_SZ)
 
@@ -314,8 +314,6 @@ typedef struct packed{
 	TAG write_tag;
 	logic write_en;
 }ID_MT_PACKET;
-
-
 
 //MT -> ID Connections
 typedef struct packed{
