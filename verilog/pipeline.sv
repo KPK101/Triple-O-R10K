@@ -288,6 +288,7 @@ module pipeline (
 
     stage_is stage_is_0 (
         // Inputs
+	.is_ex_reg	(is_ex_reg),
         .rs_is_packet      (rs_is_packet),
         .prf_is_packet   (prf_is_packet),
 
@@ -302,11 +303,15 @@ module pipeline (
     //                                              //
     //////////////////////////////////////////////////
 
-    //TODO:IMPLEMENT EX STAGE
-    stage_is stage_is_0 (
+    stage_ex stage_ex_0 (
         // Inputs
         .is_ex_reg      (is_ex_reg),
-        .ex_packet   (ex_packet)
+
+	// Outputs
+	.ex_ic_packet	(ex_ic_packet),
+	.ex_rs_packet	(ex_rs_packet),
+	.ex_prf_packet	(ex_prf_packet)
+	
     );
     
     //////////////////////////////////////////////////

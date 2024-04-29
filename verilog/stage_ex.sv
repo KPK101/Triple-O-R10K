@@ -131,21 +131,41 @@ module stage_ex(
     input IS_EX_PACKET is_ex_reg,
     input [`XLEN-1:0] Dmem2load_data,
     
-    output EX_IC_PACKET ic_packet,
-    output EX_RS_PACKET rs_packet,
-    output EX_PRF_PACKET prf_packet,
+    output EX_IC_PACKET ex_ic_packet,
+    output EX_RS_PACKET ex_rs_packet,
+    output EX_PRF_PACKET ex_prf_packet,
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,
     output [`XLEN-1:0] load2Dmem_data,
 );
 
+    // Pass-throughs
+    assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
+					  is_mult ? mult_result : alu_result;
+    assign ex_ic_packet.NPC    = is_ex_reg.NPC;
+    assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
+    assign ex_ic_packet.rs2_value = is_ex_reg.rs2_value;
+    assign ex_ic_packet.wr_mem = is_ex_reg.wr_mem;
+    assign ex_ic_packet.dest_tag = is_ex_reg.dest_tag;
+    assign ex_ic_packet.halt = is_ex_reg.halt;
+    assign ex_ic_packet.illegal = is_ex_reg.illegal;
+    assign ex_ic_packet.csr_op = is_ex_reg.csr_op;
+    assign ex_ic_packet.rob_idx = is_ex_reg.rob_idx;
+    
+    assign ex_rs_packet.remove_idx = is_ex_reg.rs_idx;
+    assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
+    
+    assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
+    assign ex_prf_packet.write_data = ic_packet.result;
+    assign ex_prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
+
     logic is_mult;
     
-	assign is_mult =        is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
-							is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
-							is_ex_reg.decoder_packet.alu_func == ALU_MULHSU ||
-							is_ex_reg.decoder_packet.alu_func == ALU_MULHU;
+    assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
+		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
+		     is_ex_reg.decoder_packet.alu_func == ALU_MULHSU ||
+		     is_ex_reg.decoder_packet.alu_func == ALU_MULHU;
 							
     logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
     
@@ -171,6 +191,9 @@ module stage_ex(
     
     logic take_conditional;
     logic [`XLEN-1:0] alu_result, mult_result, load_result;
+
+
+    // Instantiate ALU 
     alu alu_0(
         .opa(opa_mux_out),
         .opb(opb_mux_out),
@@ -178,7 +201,8 @@ module stage_ex(
 
         .result(alu_result)
     );
-    
+
+    // Instantiate mult
     mult mult_0(
         .opa(opa_mux_out),
         .opb(opb_mux_out),
@@ -186,7 +210,8 @@ module stage_ex(
 
         .result(mult_result)
     );
-    
+
+    // Instantiate load
     load load_0(
         .is_ex_reg(is_ex_reg),
         .opa(opa_mux_out),
@@ -199,7 +224,8 @@ module stage_ex(
         .load2Dmem_data(load2Dmem_data),
         .result(load_result)
     );
-    
+
+    // Instantiate the conditional branch module
     conditional_branch cb_0(
         .func(is_ex_reg.inst.b.funct3),
         .rs1(is_ex_reg.rs1_value),
@@ -208,25 +234,6 @@ module stage_ex(
         .take(take_conditional)
     );
     
-    assign ic_packet.result = is_ex_reg.rd_mem ? load_result :
-                              is_mult          ? mult_result : alu_result;
-    
-    assign ic_packet.NPC    = is_ex_reg.NPC;
-    assign ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
-    
-    assign ic_packet.rs2_value = is_ex_reg.rs2_value;
-    assign ic_packet.wr_mem = is_ex_reg.wr_mem;
-    assign ic_packet.dest_tag = is_ex_reg.dest_tag;
-    assign ic_packet.halt = is_ex_reg.halt;
-    assign ic_packet.illegal = is_ex_reg.illegal;
-    assign ic_packet.csr_op = is_ex_reg.csr_op;
-    assign ic_packet.rob_idx = is_ex_reg.rob_idx;
-    
-    assign rs_packet.remove_idx = is_ex_reg.rs_idx;
-    assign rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
-    
-    assign prf_packet.write_tag = is_ex_reg.dest_tag;
-    assign prf_packet.write_data = ic_packet.result;
-    assign prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
+
     
 endmodule
