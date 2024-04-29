@@ -247,8 +247,7 @@ module stage_id (
     
     logic need_rs1;
     logic need_rs2;
-    assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);
-    
+    assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);    
     assign need_rs2 = (decoder_packet.opb_select == OPB_IS_RS2      || 
                        decoder_packet.opb_select == OPB_IS_B_IMM    || 
                        decoder_packet.opb_select == OPB_IS_S_IMM);

@@ -4,6 +4,7 @@
 module testbench;
 
 // Define testbench signals based on the map_table module's interface
+
     TAG cdb;
     logic cdb_en, clock, reset;
     IF_ID_PACKET if_id_reg;
@@ -15,7 +16,6 @@ module testbench;
     map_table map_table (
         .clock (clock),
         .reset (reset),
-        
         .cdb(cdb),
         .cdb_en(cdb_en),
         
@@ -31,8 +31,7 @@ module testbench;
     
     rs rs (
         .clock (clock),
-        .reset (reset),
-        
+        .reset (reset),    
         .cdb(cdb),
         .cdb_en(cdb_en),
         
@@ -48,7 +47,7 @@ module testbench;
     ROB_ID_PACKET rob_id_packet;
     ROB_IR_PACKET rob_ir_packet;
 	
-	rob rob (
+    rob rob (
 	    .clock (clock),
 	    .reset (reset),
 	    
@@ -56,21 +55,21 @@ module testbench;
 	    .ic_rob_packet(ic_rob_packet),
 	    .rob_id_packet(rob_id_packet),
 	    .rob_ir_packet(rob_ir_packet)
-	);
+    );
 	
     //Free List
     ID_FL_PACKET id_fl_packet;
     IR_FL_PACKET ir_fl_packet;
-     FL_ID_PACKET fl_id_packet;
+    FL_ID_PACKET fl_id_packet;
 	
-	free_list free_list (
+    free_list free_list (
 	    .clock (clock),
 	    .reset (reset),
 	    
 	    .id_fl_packet(id_fl_packet),
 	    .ir_fl_packet(ir_fl_packet),
 	    .fl_id_packet(fl_id_packet)
-	);
+    );
 
     stage_id stage_id_0 (
         // inputs
@@ -89,22 +88,22 @@ module testbench;
 
     //PRF
     IS_PRF_PACKET is_prf_packet;
-	IC_PRF_PACKET ic_prf_packet;
-	PRF_IS_PACKET prf_is_packet;
+    IC_PRF_PACKET ic_prf_packet;
+    PRF_IS_PACKET prf_is_packet;
 	
     prf prf (
-	    .clock (clock),
-	    .reset(reset),
-	    .is_prf_packet(is_prf_packet),
-	    .ic_prf_packet(ic_prf_packet),
-	    .prf_is_packet(prf_is_packet)
+	.clock (clock),
+	.reset(reset),
+	.is_prf_packet(is_prf_packet),
+	.ic_prf_packet(ic_prf_packet),
+	.prf_is_packet(prf_is_packet)
 	);
 	
     //ISSSUE 
-	IS_EX_PACKET is_packet;
-	stage_is stage_is_0 (
+    IS_EX_PACKET is_packet;
+    stage_is stage_is_0 (
         // Inputs
-        .rs_is_packet      (rs_is_packet),
+        .rs_is_packet    (rs_is_packet),
         .prf_is_packet   (prf_is_packet),
 
         // Outputs
@@ -112,10 +111,15 @@ module testbench;
         .is_ex_packet   (is_packet)
     );
 
+    //IS_EX_PACKET is_ex_reg;
+    EX_IC_PACKET ex_ic_packet;
+    EX_RS_PACKET ex_rs_packet;
+    EX_PRF_PACKET ex_prf_packet;
+
     //EXECUTE
 	stage_ex stage_ex_0 (
         // Inputs
-        .is_ex_reg      (is_ex_reg),
+        .is_ex_reg      (is_packet),
 
 	// Outputs
 	.ex_ic_packet	(ex_ic_packet), 

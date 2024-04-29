@@ -468,6 +468,7 @@ typedef struct packed {
 
     ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
     ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+    //DECODER_PACKET decoder_packet;
 
     TAG         dest_tag;  // destination tag
     ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)

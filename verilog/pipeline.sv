@@ -288,15 +288,25 @@ module pipeline (
 
     stage_is stage_is_0 (
         // Inputs
-	.is_ex_reg	(is_ex_reg),
+	//.is_ex_reg	(is_ex_reg),
         .rs_is_packet      (rs_is_packet),
         .prf_is_packet   (prf_is_packet),
 
         // Outputs
         .is_prf_packet   (is_prf_packet),
-        .is_ex_packet   (is_packet)
+        .is_ex_packet   (is_ex_packet)
     );
+
     
+    //////////////////////////////////////////////////
+    //                                              //
+    //            ID/EX Pipeline Register           //
+    //                                              //
+    //////////////////////////////////////////////////
+	assign id_ex_enable = 1'b1;
+	if (id_ex_enable) begin
+		is_ex_reg <= is_ex_packet; // pass is packet to ex register
+	end
     //////////////////////////////////////////////////
     //                                              //
     //                  EX-Stage                    //

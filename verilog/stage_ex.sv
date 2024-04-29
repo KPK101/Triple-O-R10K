@@ -150,17 +150,22 @@ module stage_ex(
     logic [`XLEN-1:0] alu_result, mult_result, load_result;
     logic is_mult;
     
-    assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
+   /* assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULHSU ||
-		     is_ex_reg.decoder_packet.alu_func == ALU_MULHU;
+		     is_ex_reg.decoder_packet.alu_func == ALU_MULHU;*/
+
+    assign is_mult = is_ex_reg.alu_func == ALU_MUL ||
+		     is_ex_reg.alu_func == ALU_MULH ||
+		     is_ex_reg.alu_func == ALU_MULHSU ||
+		     is_ex_reg.alu_func == ALU_MULHU;
 
 
     // Instantiate ALU 
     alu alu_0(
         .opa(opa_mux_out),
         .opb(opb_mux_out),
-        .func(id_ex_reg.alu_func),
+        .func(is_ex_reg.alu_func),
 
         .result(alu_result)
     );
@@ -169,7 +174,7 @@ module stage_ex(
     mult mult_0(
         .opa(opa_mux_out),
         .opb(opb_mux_out),
-        .func(id_ex_reg.alu_func),
+        .func(is_ex_reg.alu_func),
 
         .result(mult_result)
     );
@@ -222,7 +227,7 @@ module stage_ex(
     //logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
     
     always_comb begin
-        case (id_ex_reg.opa_select)
+        case (is_ex_reg.opa_select)
             OPA_IS_RS1:  opa_mux_out = is_ex_reg.rs1_value;
             OPA_IS_NPC:  opa_mux_out = is_ex_reg.NPC;
             OPA_IS_PC:   opa_mux_out = is_ex_reg.PC;
@@ -230,7 +235,7 @@ module stage_ex(
             default:     opa_mux_out = `XLEN'hdeadface; // dead face
         endcase
         
-        case (id_ex_reg.opb_select)
+        case (is_ex_reg.opb_select)
             OPB_IS_RS2:   opb_mux_out = is_ex_reg.rs2_value;
             OPB_IS_I_IMM: opb_mux_out = `RV32_signext_Iimm(is_ex_reg.inst);
             OPB_IS_S_IMM: opb_mux_out = `RV32_signext_Simm(is_ex_reg.inst);
