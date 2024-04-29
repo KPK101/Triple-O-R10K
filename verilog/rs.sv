@@ -92,7 +92,7 @@ module rs(
 			end
 			
 			//Handle rs -> id writes
-			if (rs_id_packet.free && id_rs_packet.write_en) begin 
+			if (!rs_table[rs_id_packet.free_idx].busy && id_rs_packet.write_en) begin 
 				rs_table[rs_id_packet.free_idx].busy <= 1;
 				rs_table[rs_id_packet.free_idx].decoder_packet <= id_rs_packet.decoder_packet;
 			end
