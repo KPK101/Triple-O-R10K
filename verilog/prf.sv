@@ -7,7 +7,7 @@ module prf(
     
     output PRF_IS_PACKET prf_is_packet
 );
-    logic [$clog2(`PHYS_REG_SZ)-1:1] [`XLEN-1:0] registers;
+    logic [`PHYS_REG_SZ-1:1] [`XLEN-1:0] registers;
     
     always_comb begin
     
@@ -34,7 +34,7 @@ module prf(
     always_ff @(posedge clock) begin
         if(reset) begin
             foreach(registers[i])begin
-                registers[i]<=32'd0;
+                registers[i]<=i;
             end
         end
         if (ic_prf_packet.write_en && ic_prf_packet.write_tag.phys_reg != 0) begin

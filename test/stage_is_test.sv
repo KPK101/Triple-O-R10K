@@ -154,7 +154,7 @@ module testbench;
         if_id_reg.PC = 0;
         if_id_reg.NPC = 4;
         if_id_reg.valid = 1;
-        @(negedge clock);//addi r7 <-r7+1
+       /* @(negedge clock);//addi r7 <-r7+1
         reset = 0;
         if_id_reg.inst = 32'b000000000101_00111_000_00111_0010011;
         if_id_reg.PC = 0;
@@ -174,8 +174,10 @@ module testbench;
         cdb_en = 1;
         cdb.valid = 1;
         cdb.phys_reg = 32;
-        cdb.ready = 1;
-        @(posedge clock);
+        cdb.ready = 1;*/
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
         
         $display("\nENDING TESTBENCH: SUCCESS!");
         $display("@@@ Passed\n");

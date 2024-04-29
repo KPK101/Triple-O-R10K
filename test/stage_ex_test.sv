@@ -7,7 +7,7 @@ module testbench;
 
     TAG cdb;
     logic cdb_en, clock, reset;
-    IF_ID_PACKET if_id_reg;
+    IF_ID_PACKET if_id_reg, if_packet;
 
     //Map Table
     ID_MT_PACKET id_mt_packet;
@@ -111,15 +111,14 @@ module testbench;
         .is_ex_packet   (is_packet)
     );
 
-    //IS_EX_PACKET is_ex_reg;
+    IS_EX_PACKET is_ex_reg;
     EX_IC_PACKET ex_ic_packet;
-    EX_RS_PACKET ex_rs_packet;
     EX_PRF_PACKET ex_prf_packet;
 
     //EXECUTE
 	stage_ex stage_ex_0 (
         // Inputs
-        .is_ex_reg      (is_packet),
+        .is_ex_reg      (is_ex_reg),
 
 	// Outputs
 	.ex_ic_packet	(ex_ic_packet), 
@@ -128,24 +127,28 @@ module testbench;
 	
     );
 
+    always_ff @(posedge clock) begin
+        if_id_reg <= if_packet;
+        is_ex_reg <= is_packet;
+    end
+    
     always begin
         #(`CLOCK_PERIOD/2.0);
         clock = ~clock;
     end
-
-
+    
+   
 // Test stimulus
     initial begin
         // Initialize inputs
         $monitor(
 "@@@\tTime:%4.0f clock:%b reset:%b \n\
-\tcdb:%b cdb_en:%b \n\
-\tex_result: %d ex_rs2_value: %d ex_rs_remove: %b \n\
+\tis_packet_dest_reg: %d is_packet_rs1: %d is_packet_rs2: %d is_packet_opb_select: %b \n\
+\tex_result: %d ex_rs2_value: %d ex_rs_remove_en: %b ex_rs_remove_idx: %d\n\
 \tex_prf_write: %b ex_prf_data: %d\n\
 ",      
                   $time, clock, reset,
-                  cdb, cdb_en,
-                  ex_ic_packet.result, ex_ic_packet.rs2_value, ex_rs_packet.remove_en, ex_prf_packet.write_en, ex_prf_packet.write_data
+                  is_packet.dest_tag.phys_reg, is_packet.rs1_value, is_packet.rs2_value, is_packet.opb_select, ex_ic_packet.result, ex_ic_packet.rs2_value, ex_rs_packet.remove_en, ex_rs_packet.remove_idx, ex_prf_packet.write_en, ex_prf_packet.write_data 
                   );
        
         $display("STARTING TESTBENCH!");
@@ -158,25 +161,25 @@ module testbench;
         cdb.ready = 0;
         
         // Release reset; 
-        @(negedge clock);
+        @(negedge clock);//15
         reset = 0;
-        if_id_reg.inst = 32'b0000000_00011_00101_000_00111_0110011;
-        if_id_reg.PC = 0;
-        if_id_reg.NPC = 4;
-        if_id_reg.valid = 1;
-        @(negedge clock);
+        if_packet.inst = 32'b0000000_00011_00101_000_00111_0110011;
+        if_packet.PC = 0;
+        if_packet.NPC = 4;
+        if_packet.valid = 1;
+        @(negedge clock);//45
         reset = 0;
-        if_id_reg.inst = 32'b000000000101_00110_000_00110_0010011;
-        if_id_reg.PC = 0;
-        if_id_reg.NPC = 4;
-        if_id_reg.valid = 1;
-        @(negedge clock);//addi r7 <-r7+1
+        if_packet.inst = 32'b000000000101_00110_000_00110_0010011;
+        if_packet.PC = 0;
+        if_packet.NPC = 4;
+        if_packet.valid = 1;
+        @(negedge clock);//105 addi r7 <-r7+1
         reset = 0;
-        if_id_reg.inst = 32'b000000000101_00111_000_00111_0010011;
-        if_id_reg.PC = 0;
-        if_id_reg.NPC = 4;
-        if_id_reg.valid = 1;
-        @(negedge clock);//mult r7 <-r7+1
+        if_packet.inst = 32'b000000000101_00111_000_00111_0010011;
+        if_packet.PC = 0;
+        if_packet.NPC = 4;
+        if_packet.valid = 1;
+        /*@(negedge clock);//mult r7 <-r7+1
         reset = 0;
         if_id_reg.inst = 32'b0000001_00110_00111_000_01111_0110011;
         if_id_reg.PC = 0;
@@ -190,8 +193,15 @@ module testbench;
         cdb_en = 1;
         cdb.valid = 1;
         cdb.phys_reg = 32;
-        cdb.ready = 1;
-        @(posedge clock);
+        cdb.ready = 1;*/
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
+        @(negedge clock);
         
         $display("\nENDING TESTBENCH: SUCCESS!");
         $display("@@@ Passed\n");

@@ -38,7 +38,7 @@ module rs(
 	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
 							    id_rs_packet.decoder_packet.rd_mem	? 1 :
 							    is_mult			                ? 0 :
-							    rs_table[4].busy	                ? 3 : 4;
+							    rs_table[3].busy	                ? 4 : 3;
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
 
 	//Handle rs -> is issue logic
@@ -90,6 +90,7 @@ module rs(
 			//Handle ex -> id removes
 			if (ex_rs_packet.remove_en) begin
 				rs_table[ex_rs_packet.remove_idx].busy <= 0;
+				rs_table[ex_rs_packet.remove_idx].issued   <= 0;
 			end
 		end
 	end
