@@ -23,7 +23,7 @@ module stage_ir(
     assign mt_packet.retire_t_old = rob_ir_packet.retire_t_old;
     assign mt_packet.retire_en = rob_ir_packet.retire_en;
     
-    assign pipe_packet.completed_insts = rob_ir_packet.retire_en;
+    assign pipe_packet.completed_insts = {3'b0, rob_ir_packet.retire_en};
     assign pipe_packet.error_status = rob_ir_packet.halt ? HALTED_ON_WFI : NO_ERROR;
     assign pipe_packet.wr_idx = rob_ir_packet.dest_reg_idx;
     assign pipe_packet.wr_data = rob_ir_packet.result;

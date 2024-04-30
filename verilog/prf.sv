@@ -3,7 +3,7 @@ module prf(
     input             clock, // system clock
     input             reset,
     input IS_PRF_PACKET is_prf_packet,
-    input IC_PRF_PACKET ic_prf_packet,
+    input EX_PRF_PACKET ic_prf_packet,
     
     output PRF_IS_PACKET prf_is_packet
 );

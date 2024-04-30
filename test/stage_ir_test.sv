@@ -88,6 +88,7 @@ module testbench;
 
     //PRF
     IS_PRF_PACKET is_prf_packet;
+    EX_PRF_PACKET ex_prf_packet;
     IC_PRF_PACKET ic_prf_packet;
     PRF_IS_PACKET prf_is_packet;
 	
@@ -95,7 +96,7 @@ module testbench;
 	.clock (clock),
 	.reset(reset),
 	.is_prf_packet(is_prf_packet),
-	.ic_prf_packet(ic_prf_packet),
+	.ic_prf_packet(ex_prf_packet),
 	.prf_is_packet(prf_is_packet)
 	);
 	
@@ -113,7 +114,6 @@ module testbench;
 
     IS_EX_PACKET is_ex_reg;
     EX_IC_PACKET ex_packet, ex_ic_reg;
-    EX_PRF_PACKET ex_prf_packet;
 
     //EXECUTE
 	stage_ex stage_ex_0 (
@@ -167,17 +167,30 @@ module testbench;
                   $time, clock, reset,
                   is_packet.dest_tag.phys_reg, is_packet.rs1_value, is_packet.rs2_value, is_packet.opb_select, ex_packet.result, ex_packet.rs2_value, ex_rs_packet.remove_en, ex_rs_packet.remove_idx, ex_prf_packet.write_en, ex_prf_packet.write_data, rs_id_packet.free_idx, rs_id_packet.free, rs_is_packet.issue_en
                   );*/
-        $monitor ("@@@\tTime:%4.0f clock:%b reset:%b \n\
-        \t pipe_packet.completed_insts: %b pipe_packet.error_status: %b \n \tpipe_packet.wr_idx = %d pipe_packet.wr_data = %d \t pipe_packet.wr_en = %b pipe_packet.NPC = %d", $time, clock, reset, pipe_packet.completed_insts, pipe_packet.error_status, pipe_packet.wr_idx, pipe_packet.wr_data, pipe_packet.wr_en, pipe_packet.NPC
+       $monitor ("\
+\tpipe_packet.completed_insts: %b pipe_packet.error_status: %b \n\
+\tpipe_packet.wr_idx = %d pipe_packet.wr_data = %d pipe_packet.wr_en = %b \n\
+\tpipe_packet.NPC = %d",
+pipe_packet.completed_insts, pipe_packet.error_status,
+pipe_packet.wr_idx, pipe_packet.wr_data, pipe_packet.wr_en,
+pipe_packet.NPC
         );
         
         /*$monitor (
 "@@@\tTime:%4.0f clock:%b reset:%b \n\
 \tic_rob_packet.complete_en: %b ic_rob_packet.complete_idx: %d\
-\trob_ir_packet.retire_en: %b rob_ir_packet.retire_idx: %b\n", 
+\trob_ir_packet.retire_en: %b rob_ir_packet.retire_t.phys_reg: %d\n", 
 $time, clock, reset,
 ic_rob_packet.complete_en, ic_rob_packet.complete_idx,
-rob_ir_packet.retire_en, rob_ir_packet.retire_idx,
+rob_ir_packet.retire_en, rob_ir_packet.retire_t.phys_reg
+        );*/
+       
+        /*$monitor (
+"@@@\tTime:%4.0f clock:%b reset:%b \n\
+\tex_prf_packet.write_tag: %b ex_prf_packet.write_en: %b ex_prf_packet.write_data: %d \n\
+", 
+$time, clock, reset,
+ex_prf_packet.write_tag, ex_prf_packet.write_en, ex_prf_packet.write_data
         );*/
        
         $display("STARTING TESTBENCH!");
@@ -186,39 +199,17 @@ rob_ir_packet.retire_en, rob_ir_packet.retire_idx,
         clock = 1;
         
         // Release reset; 
-        @(negedge clock);//15 r3 <- r1 +r2
+        @(negedge clock);//r3 <- r1 +r2
         reset = 0;
-        if_packet.inst = 32'b0000000_00010_00001_000_00011_0110011;
-        if_packet.PC = 0;
-        if_packet.NPC = 4;
-        if_packet.valid = 1;
-        @(negedge clock);//45 r5 <- r4 + 1
-        reset = 0;
-        if_packet.inst = 32'b000000000001_00100_000_00101_0010011;
-        if_packet.PC = 0;
-        if_packet.NPC = 4;
-        if_packet.valid = 1;
-        @(negedge clock);//75 addi r7 <-r6+1
-        reset = 0;
-        if_packet.inst = 32'b000000000001_00110_000_00111_0010011;
-        if_packet.PC = 0;
-        if_packet.NPC = 4;
-        if_packet.valid = 1;
-        @(negedge clock);//mult r10 <-r9*r8
-        reset = 0;
-        if_packet.inst = 32'b0000001_01001_01000_000_01010_0110011;
-        if_packet.PC = 0;
-        if_packet.NPC = 4;
-        if_packet.valid = 1;
+        for(int i = 0; i < 100; i++)begin
+            @(negedge clock);//r3 <- r3 + 1
+            reset = 0;
+            if_packet.inst = 32'b000000000001_00011_000_00011_0010011;
+            if_packet.PC = 0;
+            if_packet.NPC = i;
+            if_packet.valid = 1;
+        end
         @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        @(negedge clock);
-        
         $display("\nENDING TESTBENCH: SUCCESS!");
         $display("@@@ Passed\n");
         $finish; // End simulation
