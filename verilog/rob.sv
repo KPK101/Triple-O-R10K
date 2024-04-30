@@ -17,6 +17,7 @@ typedef struct packed {
 module rob (
 	input clock,
 	input reset,
+	input ir_stall,
 	
 	input ID_ROB_PACKET id_rob_packet,
 	
@@ -24,7 +25,10 @@ module rob (
 	
 	output ROB_ID_PACKET rob_id_packet,
 	
-	output ROB_IR_PACKET rob_ir_packet
+	output ROB_IR_PACKET rob_ir_packet,
+
+	output [$clog2(`ROB_SZ)-1:0] head_idx;
+	output [$clog2(`ROB_SZ):0] counter;
 );
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
@@ -87,7 +91,7 @@ module rob (
 			end
 			
 			//Handle rob->retire update
-			if (rob_ir_packet.retire_en) begin
+			if (rob_ir_packet.retire_en && !ir_stall) begin
 				head_idx <= head_idx + 1;
 			end
 			//Update Counter

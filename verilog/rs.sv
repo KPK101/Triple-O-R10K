@@ -12,6 +12,7 @@ module rs(
 	input reset,
 	
 	input interrupt,
+	input is_stall,
 	
 	//bus input
 	input TAG cdb,
@@ -77,7 +78,7 @@ module rs(
 			end
 			
 			//Handle issue marking
-			if (rs_is_packet.issue_en) begin
+			if (rs_is_packet.issue_en && !is_stall) begin
 			    rs_table[rs_is_packet.decoder_packet.rs_idx].issued <= 1;
 			end
 			
