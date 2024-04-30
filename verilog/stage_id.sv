@@ -283,6 +283,7 @@ module stage_id (
     assign id_rob_packet.NPC = if_id_reg.NPC;
     
     
+    
     //Assign Reorder buffer Input
     assign decoder_packet.rob_idx = rob_id_packet.free_idx;
     

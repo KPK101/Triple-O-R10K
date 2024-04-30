@@ -221,7 +221,7 @@ module stage_ex(
     
     assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
     assign ex_prf_packet.write_data = ex_ic_packet.result;
-    assign ex_prf_packet.write_en = is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
+    assign ex_prf_packet.write_en = (is_ex_reg.valid && !is_ex_reg.illegal) && is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
 
     always_comb begin
         case (is_ex_reg.opa_select)

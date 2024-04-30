@@ -47,7 +47,8 @@ module rs(
 		foreach (rs_table[i]) begin
 			if((!rs_table[i].issued) &&
 			   (!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
-			   (!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready)) begin
+			   (!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready) &&
+			   (rs_table[i].busy)) begin
 				rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
 				rs_is_packet.issue_en = 1;
 			end

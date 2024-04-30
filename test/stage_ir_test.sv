@@ -12,7 +12,7 @@ module testbench;
     //Map Table
     ID_MT_PACKET id_mt_packet;
     MT_ID_PACKET mt_id_packet;
-    
+    IR_MT_PACKET ir_mt_packet;
     map_table map_table (
         .clock (clock),
         .reset (reset),
@@ -112,7 +112,7 @@ module testbench;
     );
 
     IS_EX_PACKET is_ex_reg;
-    EX_IC_PACKET ex_ic_packet;
+    EX_IC_PACKET ex_packet, ex_ic_reg;
     EX_PRF_PACKET ex_prf_packet;
 
     //EXECUTE
@@ -121,15 +121,31 @@ module testbench;
         .is_ex_reg      (is_ex_reg),
 
 	// Outputs
-	.ex_ic_packet	(ex_ic_packet), 
+	.ex_ic_packet	(ex_packet), 
 	.ex_rs_packet	(ex_rs_packet), 
 	.ex_prf_packet	(ex_prf_packet)
 	
+    );
+    
+    stage_ic stage_ic_0 (
+        .ex_ic_reg(ex_ic_reg),
+        .ic_rob_packet(ic_rob_packet),
+        .cdb(cdb),
+        .cdb_en(cdb_en)
+    );
+    
+    IR_PIPELINE_PACKET pipe_packet;
+    stage_ir stage_ir_0 (
+        .rob_ir_packet(rob_ir_packet),
+        .fl_packet(ir_fl_packet),
+        .mt_packet(ir_mt_packet),
+        .pipe_packet(pipe_packet)
     );
 
     always_ff @(posedge clock) begin
         if_id_reg <= if_packet;
         is_ex_reg <= is_packet;
+        ex_ic_reg <= ex_packet;
     end
     
     always begin
@@ -149,17 +165,13 @@ module testbench;
 \trs_id_packet.free_idx: %d rs_id_packet.free: %d rs_is_packet.issue: %d\n\
 ",      
                   $time, clock, reset,
-                  is_packet.dest_tag.phys_reg, is_packet.rs1_value, is_packet.rs2_value, is_packet.opb_select, ex_ic_packet.result, ex_ic_packet.rs2_value, ex_rs_packet.remove_en, ex_rs_packet.remove_idx, ex_prf_packet.write_en, ex_prf_packet.write_data, rs_id_packet.free_idx, rs_id_packet.free, rs_is_packet.issue_en
+                  is_packet.dest_tag.phys_reg, is_packet.rs1_value, is_packet.rs2_value, is_packet.opb_select, ex_packet.result, ex_packet.rs2_value, ex_rs_packet.remove_en, ex_rs_packet.remove_idx, ex_prf_packet.write_en, ex_prf_packet.write_data, rs_id_packet.free_idx, rs_id_packet.free, rs_is_packet.issue_en
                   );
        
         $display("STARTING TESTBENCH!");
 
         reset = 1;
         clock = 1;
-        cdb_en = 0;
-        cdb.valid = 0;
-        cdb.phys_reg = 0;
-        cdb.ready = 0;
         
         // Release reset; 
         @(negedge clock);//15 r3 <- r1 +r2
