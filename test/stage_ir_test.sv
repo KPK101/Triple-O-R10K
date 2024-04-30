@@ -157,7 +157,7 @@ module testbench;
 // Test stimulus
     initial begin
         // Initialize inputs
-        $monitor(
+        /*$monitor(
 "@@@\tTime:%4.0f clock:%b reset:%b \n\
 \tis_packet_dest_reg: %d is_packet_rs1: %d is_packet_rs2: %d is_packet_opb_select: %b \n\
 \tex_result: %d ex_rs2_value: %d ex_rs_remove_en: %b ex_rs_remove_idx: %d\n\
@@ -166,7 +166,19 @@ module testbench;
 ",      
                   $time, clock, reset,
                   is_packet.dest_tag.phys_reg, is_packet.rs1_value, is_packet.rs2_value, is_packet.opb_select, ex_packet.result, ex_packet.rs2_value, ex_rs_packet.remove_en, ex_rs_packet.remove_idx, ex_prf_packet.write_en, ex_prf_packet.write_data, rs_id_packet.free_idx, rs_id_packet.free, rs_is_packet.issue_en
-                  );
+                  );*/
+        $monitor ("@@@\tTime:%4.0f clock:%b reset:%b \n\
+        \t pipe_packet.completed_insts: %b pipe_packet.error_status: %b \n \tpipe_packet.wr_idx = %d pipe_packet.wr_data = %d \t pipe_packet.wr_en = %b pipe_packet.NPC = %d", $time, clock, reset, pipe_packet.completed_insts, pipe_packet.error_status, pipe_packet.wr_idx, pipe_packet.wr_data, pipe_packet.wr_en, pipe_packet.NPC
+        );
+        
+        /*$monitor (
+"@@@\tTime:%4.0f clock:%b reset:%b \n\
+\tic_rob_packet.complete_en: %b ic_rob_packet.complete_idx: %d\
+\trob_ir_packet.retire_en: %b rob_ir_packet.retire_idx: %b\n", 
+$time, clock, reset,
+ic_rob_packet.complete_en, ic_rob_packet.complete_idx,
+rob_ir_packet.retire_en, rob_ir_packet.retire_idx,
+        );*/
        
         $display("STARTING TESTBENCH!");
 

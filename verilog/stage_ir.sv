@@ -31,7 +31,7 @@ module stage_ir(
     assign pipe_packet.NPC = rob_ir_packet.take_branch ? rob_ir_packet.result : rob_ir_packet.NPC;
     
     assign store2Dmem_command = (rob_ir_packet.retire_en && rob_ir_packet.wr_mem) ? BUS_STORE : BUS_NONE;
-    assign store2Dmem_size = (rob_ir_packet.retire_en && rob_ir_packet.wr_mem) ? BUS_STORE : BUS_NONE;
+    assign store2Dmem_size = rob_ir_packet.mem_size;
     assign store2Dmem_addr = rob_ir_packet.result;
     assign store2Dmem_data = rob_ir_packet.rs2_value;
     

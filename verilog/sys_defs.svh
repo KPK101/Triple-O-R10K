@@ -373,6 +373,7 @@ typedef struct packed{
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
+	MEM_SIZE mem_size;
 	
     logic write_en;
 }ID_ROB_PACKET;
@@ -401,6 +402,7 @@ typedef struct packed{
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
+	MEM_SIZE mem_size;
 	
 	logic [`XLEN-1:0] result;
 	logic [`XLEN-1:0] rs2_value;

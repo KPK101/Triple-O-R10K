@@ -5,6 +5,7 @@ typedef struct packed {
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
+	MEM_SIZE mem_size;
 	
 	logic complete;
 	logic [`XLEN-1:0] result;
@@ -72,6 +73,7 @@ module rob (
 				rob[rob_id_packet.free_idx].wr_mem <= id_rob_packet.wr_mem;
 				rob[rob_id_packet.free_idx].dest_reg_idx <= id_rob_packet.dest_reg_idx;
 				rob[rob_id_packet.free_idx].NPC <= id_rob_packet.NPC;
+				rob[rob_id_packet.free_idx].mem_size <= id_rob_packet.mem_size;
 				
 				rob_id_packet.free_idx <= rob_id_packet.free_idx + 1;
 			end

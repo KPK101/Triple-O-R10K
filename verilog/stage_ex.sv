@@ -215,6 +215,7 @@ module stage_ex(
     assign ex_ic_packet.illegal = is_ex_reg.illegal;
     assign ex_ic_packet.csr_op = is_ex_reg.csr_op;
     assign ex_ic_packet.rob_idx = is_ex_reg.rob_idx;
+    assign ex_ic_packet.valid = is_ex_reg.valid;
     
     assign ex_rs_packet.remove_idx = is_ex_reg.rs_idx;
     assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;

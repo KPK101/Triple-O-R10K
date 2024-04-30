@@ -281,7 +281,7 @@ module stage_id (
     assign id_rob_packet.wr_mem = decoder_packet.wr_mem;
     assign id_rob_packet.dest_reg_idx = id_mt_packet.write_idx;
     assign id_rob_packet.NPC = if_id_reg.NPC;
-    
+    assign id_rob_packet.mem_size = MEM_SIZE'(if_id_reg.inst.r.funct3[1:0]);
     
     
     //Assign Reorder buffer Input
