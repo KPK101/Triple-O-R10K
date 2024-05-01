@@ -320,16 +320,21 @@ HEADERS = verilog/sys_defs.svh \
 
 TESTBENCH = test/pipeline_test.sv \
             test/pipeline_print.c \
-            test/mem.sv \
-	    test/rs_test.sv
+            test/mem.sv
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
-          verilog/regfile.sv \
-          verilog/icache.sv \
-          verilog/mult.sv \
-          verilog/mult_stage.sv \
-	  verilog/rs.sv \
+          verilog/map_table.sv \
+          verilog/rs.sv \
+          verilog/rob.sv \
+          verilog/free_list.sv \
+		  verilog/prf.sv \
+		  verilog/stage_if.sv \
+		  verilog/stage_id.sv \
+		  verilog/stage_is.sv \
+		  verilog/stage_ex.sv \
+		  verilog/stage_ic.sv \
+		  verilog/stage_ir.sv \
 
 SYNTH_FILES = synth/pipeline.vg
 

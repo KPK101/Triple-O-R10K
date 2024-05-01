@@ -16,7 +16,7 @@ module decoder (
     output logic          rd_mem, wr_mem, cond_branch, uncond_branch,
     output logic          csr_op, // used for CSR operations, we only use this as a cheap way to get the return code out
     output logic          halt,   // non-zero on a halt
-    output logic          illegal, // non-zero on an illegal instruction
+    output logic          illegal // non-zero on an illegal instruction
 );
 
     // Note: I recommend using an IDE's code folding feature on this block

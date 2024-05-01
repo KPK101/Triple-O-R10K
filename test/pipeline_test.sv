@@ -100,7 +100,7 @@ module testbench;
         .pipeline_commit_wr_data  (pipeline_commit_wr_data),
         .pipeline_commit_wr_idx   (pipeline_commit_wr_idx),
         .pipeline_commit_wr_en    (pipeline_commit_wr_en),
-        .pipeline_commit_NPC      (pipeline_commit_NPC),
+        .pipeline_commit_NPC      (pipeline_commit_NPC)
 
         // .if_NPC_dbg       (if_NPC_dbg),
         // .if_inst_dbg      (if_inst_dbg),

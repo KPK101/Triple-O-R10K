@@ -1,5 +1,5 @@
-//TODO:ADD LOGIC
-
+`include "verilog/sys_defs.svh"
+`include "verilog/ISA.svh"
 module alu (
     input [`XLEN-1:0] opa,
     input [`XLEN-1:0] opb,
@@ -134,11 +134,13 @@ endmodule // conditional_branch
 
 module stage_ex(
     input IS_EX_PACKET is_ex_reg,
+
     input [`XLEN-1:0] Dmem2load_data,
     
     output EX_IC_PACKET ex_ic_packet,
     output EX_RS_PACKET ex_rs_packet,
     output EX_PRF_PACKET ex_prf_packet,
+
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,

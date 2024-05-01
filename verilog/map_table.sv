@@ -68,7 +68,7 @@ module map_table (
 				end
 			end
 			//Handle id -> mt
-			if (id_mt_packet.write_en) begin
+			if (id_mt_packet.write_en && id_mt_packet.write_idx != 0) begin
 				reg_map[id_mt_packet.write_idx] <= id_mt_packet.write_tag;
 			end
 			//Handle ir -> mt

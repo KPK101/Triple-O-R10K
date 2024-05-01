@@ -11,12 +11,12 @@ module rs(
 	input clock,
 	input reset,
 	
-	input interrupt,
-	input is_stall,
-	
 	//bus input
 	input TAG cdb,
 	input logic cdb_en,
+	input interrupt,
+
+	input is_stall,
 	
 	input ID_RS_PACKET id_rs_packet,
 	

@@ -25,10 +25,9 @@ module rob (
 	
 	output ROB_ID_PACKET rob_id_packet,
 	
-	output ROB_IR_PACKET rob_ir_packet,
+	output ROB_IR_PACKET rob_ir_packet
 
-	output [$clog2(`ROB_SZ)-1:0] head_idx;
-	output [$clog2(`ROB_SZ):0] counter;
+
 );
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	

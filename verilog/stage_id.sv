@@ -199,8 +199,6 @@ endmodule // decoder
 
 
 module stage_id (
-    input              clock,           // system clock
-    input              reset,           // system reset
     input IF_ID_PACKET if_id_reg,
     input MT_ID_PACKET mt_id_packet,
     input RS_ID_PACKET rs_id_packet,
@@ -210,7 +208,8 @@ module stage_id (
     output ID_MT_PACKET id_mt_packet,
     output ID_RS_PACKET id_rs_packet,
     output ID_ROB_PACKET id_rob_packet,
-    output ID_FL_PACKET id_fl_packet
+    output ID_FL_PACKET id_fl_packet,
+    output logic next_if_valid
 );
 
     //Create decoder_packet for rs
@@ -245,6 +244,8 @@ module stage_id (
     logic free;
     assign free = rs_id_packet.free && rob_id_packet.free && fl_id_packet.free && decoder_packet.valid;
     
+    assign next_if_valid = rs_id_packet.free && rob_id_packet.free && fl_id_packet.free;
+
     logic need_rs1;
     logic need_rs2;
     assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);    
