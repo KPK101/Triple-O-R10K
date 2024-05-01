@@ -373,11 +373,11 @@ typedef struct packed{
     TAG t_in;
     TAG t_old_in;
     
-    logic halt;
+	INST  inst;
+	logic halt;
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
-	MEM_SIZE mem_size;
 	
     logic write_en;
 }ID_ROB_PACKET;
@@ -402,15 +402,15 @@ typedef struct packed{
     TAG retire_t;
     TAG retire_t_old;
     
+	INST inst;
     logic halt;
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
-	MEM_SIZE mem_size;
 	
+	logic take_branch;
 	logic [`XLEN-1:0] result;
 	logic [`XLEN-1:0] rs2_value;
-	logic take_branch;
 	
 }ROB_IR_PACKET;
 
@@ -494,6 +494,7 @@ typedef struct packed {
 
 
 typedef struct packed {
+    INST              inst;
     logic [`XLEN-1:0] result;
     logic [`XLEN-1:0] NPC;
 

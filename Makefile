@@ -334,7 +334,7 @@ SOURCES = verilog/pipeline.sv \
 		  verilog/stage_is.sv \
 		  verilog/stage_ex.sv \
 		  verilog/stage_ic.sv \
-		  verilog/stage_ir.sv \
+		  verilog/stage_ir.sv
 
 SYNTH_FILES = synth/pipeline.vg
 

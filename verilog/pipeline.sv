@@ -30,26 +30,46 @@ module pipeline (
     output logic [4:0]       pipeline_commit_wr_idx,
     output logic [`XLEN-1:0] pipeline_commit_wr_data,
     output logic             pipeline_commit_wr_en,
-    output logic [`XLEN-1:0] pipeline_commit_NPC
+    output logic [`XLEN-1:0] pipeline_commit_NPC,
 
     // Debug outputs: these signals are solely used for debugging in testbenches
-    // Do not change for project 3
-    // You should definitely change these for project 4
-    // output logic [`XLEN-1:0] if_NPC_dbg,
-    // output logic [31:0]      if_inst_dbg,
-    // output logic             if_valid_dbg,
-    // output logic [`XLEN-1:0] if_id_NPC_dbg,
-    // output logic [31:0]      if_id_inst_dbg,
-    // output logic             if_id_valid_dbg,
-    // output logic [`XLEN-1:0] id_ex_NPC_dbg,
-    // output logic [31:0]      id_ex_inst_dbg,
-    // output logic             id_ex_valid_dbg,
-    // output logic [`XLEN-1:0] ex_mem_NPC_dbg,
-    // output logic [31:0]      ex_mem_inst_dbg,
-    // output logic             ex_mem_valid_dbg,
-    // output logic [`XLEN-1:0] mem_wb_NPC_dbg,
-    // output logic [31:0]      mem_wb_inst_dbg,
-    // output logic             mem_wb_valid_dbg
+    output logic [`XLEN-1:0] if_NPC_dbg,
+    output logic [31:0]      if_inst_dbg,
+    output logic             if_valid_dbg,
+
+    output logic [`XLEN-1:0] id_NPC_dbg,
+    output logic [31:0]      id_inst_dbg,
+    output logic             id_valid_dbg,
+
+    output logic [`XLEN-1:0] is_NPC_dbg,
+    output logic [31:0]      is_inst_dbg,
+    output logic             is_valid_dbg,
+
+    output logic [`XLEN-1:0] ex_NPC_dbg,
+    output logic [31:0]      ex_inst_dbg,
+    output logic             ex_valid_dbg,
+
+    output logic [`XLEN-1:0] ic_NPC_dbg,
+    output logic [31:0]      ic_inst_dbg,
+    output logic             ic_valid_dbg,
+    
+    output logic [`XLEN-1:0] ir_NPC_dbg,
+    output logic [31:0]      ir_inst_dbg,
+    output logic             ir_valid_dbg,
+
+    output logic             ir_b_dbg,
+    output logic [`XLEN-1:0] ir_baddr_dbg,
+
+
+    output logic             is_ex_cond_branch,
+    output logic             is_ex_uncond_branch,
+    output logic [`XLEN-1:0] is_ex_rs1,
+    output logic [`XLEN-1:0] is_ex_rs2,
+    output logic [`XLEN-1:0] is_ex_npc,
+
+    output logic             ex_ic_take_branch,
+    output logic             ex_ic_branch_target,
+    output logic             ex_ic_npc
 );
     //////////////////////////////////////////////////
     //                                              //
@@ -152,6 +172,8 @@ module pipeline (
 	    .clock (clock),
 	    .reset (reset),
 
+        .interrupt(interrupt),
+
         .ir_stall(ir_stall),
 	    
 	    .id_rob_packet(id_rob_packet),
@@ -188,7 +210,7 @@ module pipeline (
         .reset (reset),
 
 	    .is_prf_packet(is_prf_packet),
-	    .ic_prf_packet(ic_prf_packet),
+	    .ex_prf_packet(ex_prf_packet),
 
 	    .prf_is_packet(prf_is_packet)
 	);
@@ -200,6 +222,8 @@ module pipeline (
     //////////////////////////////////////////////////
 
     logic [`XLEN-1:0] branch_target;
+    logic id_stall;
+    logic next_if_valid;
 
     stage_if stage_if_0 (
         // Inputs
@@ -222,12 +246,12 @@ module pipeline (
     //////////////////////////////////////////////////
 
     always_ff @(posedge clock) begin
-        if (reset) begin
+        if (reset || interrupt) begin
             if_id_reg.inst  <= `NOP;
             if_id_reg.valid <= `FALSE;
             if_id_reg.NPC   <= 0;
             if_id_reg.PC    <= 0;
-        end else if (if_id_enable) begin
+        end else if (id_stall) begin
             if_id_reg <= if_id_packet;
         end
     end
@@ -251,7 +275,7 @@ module pipeline (
         .id_rs_packet   (id_rs_packet),
         .id_rob_packet  (id_rob_packet),
         .id_fl_packet   (id_fl_packet),
-        .next_if_valid  (next_if_valid)
+        .id_stall       (id_stall)
     );
 
     //////////////////////////////////////////////////
@@ -260,7 +284,6 @@ module pipeline (
     //                                              //
     //////////////////////////////////////////////////
 
-    assign is_stall = 0;
     
     //////////////////////////////////////////////////
     //                                              //
@@ -286,7 +309,12 @@ module pipeline (
     //////////////////////////////////////////////////
 
     always_ff @(posedge clock) begin
-        is_ex_reg <= is_ex_packet;
+        if (reset || interrupt) begin
+            is_ex_reg.inst <= `NOP;
+            is_ex_reg.valid <= 0;
+        end if (!is_stall) begin
+            is_ex_reg <= is_ex_packet;
+        end
     end
 
     //////////////////////////////////////////////////
@@ -295,13 +323,38 @@ module pipeline (
     //                                              //
     //////////////////////////////////////////////////
 
-    stage_ex stage_ex_0 (
-    .is_ex_reg      (is_ex_reg),
+    logic [1:0]       load2Dmem_command;
+    MEM_SIZE          load2Dmem_size;
+    logic [`XLEN-1:0] load2Dmem_addr;
+    logic [`XLEN-1:0] load2Dmem_data;
 
-	.ex_ic_packet	(ex_ic_packet),
-	.ex_rs_packet	(ex_rs_packet),
-	.ex_prf_packet	(ex_prf_packet)
+    stage_ex stage_ex_0 (
+        .is_ex_reg      (is_ex_reg),
+
+        .ex_ic_packet	(ex_ic_packet),
+        .ex_rs_packet	(ex_rs_packet),
+        .ex_prf_packet	(ex_prf_packet),
+
+        .load2Dmem_command  (load2Dmem_command),
+        .load2Dmem_size     (load2Dmem_size),
+        .load2Dmem_addr     (load2Dmem_addr),
+        .load2Dmem_data     (load2Dmem_data)
     );
+
+    //////////////////////////////////////////////////
+    //                                              //
+    //            EX/IC Pipeline Register           //
+    //                                              //
+    //////////////////////////////////////////////////
+
+    always_ff @(posedge clock) begin
+        if (reset || is_stall || interrupt) begin
+            ex_ic_reg.inst <= `NOP;
+            ex_ic_reg.valid <= 0;
+        end else begin
+            ex_ic_reg <= ex_ic_packet;
+        end
+    end
     
     //////////////////////////////////////////////////
     //                                              //
@@ -331,6 +384,10 @@ module pipeline (
     //                   IR-Stage                   //
     //                                              //
     //////////////////////////////////////////////////
+    logic [1:0]       store2Dmem_command;
+    MEM_SIZE          store2Dmem_size;
+    logic [`XLEN-1:0] store2Dmem_addr;
+    logic [`XLEN-1:0] store2Dmem_data;
 
     stage_ir stage_ir_0 (
         .rob_ir_packet      (rob_ir_packet),
@@ -340,7 +397,12 @@ module pipeline (
         .pipe_packet    (pipe_packet),
 
         .interrupt      (interrupt),
-        .branch_target  (branch_target)
+        .branch_target  (branch_target),
+
+        .store2Dmem_command  (store2Dmem_command),
+        .store2Dmem_size     (store2Dmem_size),
+        .store2Dmem_addr     (store2Dmem_addr),
+        .store2Dmem_data     (store2Dmem_data)
     );
     
     //////////////////////////////////////////////////
@@ -370,11 +432,34 @@ module pipeline (
     //         end
     //         proc2mem_data = {32'b0, proc2Dmem_data};
     //     end
-
+    
     always_comb begin
-        proc2mem_command = BUS_LOAD;
-        proc2mem_addr    = proc2Imem_addr;
-        proc2mem_size    = DOUBLE;
+        next_if_valid = id_stall;
+        is_stall = 0;
+        if (store2Dmem_command != BUS_NONE) begin
+            proc2mem_command    = store2Dmem_command;
+            proc2mem_addr       = store2Dmem_addr;
+            proc2mem_size       = store2Dmem_size;
+            proc2mem_data       = {32'b0, store2Dmem_data};
+
+            if (load2Dmem_command != BUS_NONE) begin
+                is_stall        = 1;
+            end
+
+            next_if_valid       = 0;
+        end else if (load2Dmem_command != BUS_NONE) begin
+            proc2mem_command    = load2Dmem_command;
+            proc2mem_addr       = load2Dmem_addr;
+            proc2mem_size       = load2Dmem_size;
+            proc2mem_data       = {32'b0, load2Dmem_data};
+
+            next_if_valid       = 0;
+        end else begin
+            proc2mem_command = BUS_LOAD;
+            proc2mem_addr    = proc2Imem_addr;
+            proc2mem_size    = DOUBLE;
+        end
+        
     end
 
     //////////////////////////////////////////////////
@@ -390,5 +475,43 @@ module pipeline (
     assign pipeline_commit_wr_idx  = pipe_packet.wr_idx;
     assign pipeline_commit_wr_data = pipe_packet.wr_data;
     assign pipeline_commit_NPC     = pipe_packet.NPC;
+
+    assign if_NPC_dbg   = if_id_packet.NPC;
+    assign if_inst_dbg  = if_id_packet.inst;
+    assign if_valid_dbg = if_id_packet.valid;
+
+    assign id_NPC_dbg   = if_id_reg.NPC;
+    assign id_inst_dbg  = if_id_reg.inst;
+    assign id_valid_dbg = if_id_reg.valid;
+
+    assign is_NPC_dbg   = rs_is_packet.decoder_packet.NPC;
+    assign is_inst_dbg  = rs_is_packet.decoder_packet.inst;
+    assign is_valid_dbg = rs_is_packet.issue_en;
+
+    assign ex_NPC_dbg   = is_ex_reg.NPC;
+    assign ex_inst_dbg  = is_ex_reg.inst;
+    assign ex_valid_dbg = is_ex_reg.valid;
+
+    assign ic_NPC_dbg   = ex_ic_reg.NPC;
+    assign ic_inst_dbg  = ex_ic_reg.inst;
+    assign ic_valid_dbg = ex_ic_reg.valid;
+
+    assign ir_NPC_dbg   = rob_ir_packet.NPC;
+    assign ir_inst_dbg  = rob_ir_packet.inst;
+    assign ir_valid_dbg = rob_ir_packet.retire_en;
+
+    assign ir_b_dbg     = interrupt;
+    assign ir_baddr_dbg = branch_target;
+
+    
+    assign is_ex_cond_branch    =is_ex_packet.cond_branch;
+    assign is_ex_uncond_branch  =is_ex_packet.uncond_branch;
+    assign is_ex_rs1            =is_ex_packet.rs1_value;
+    assign is_ex_rs2            =is_ex_packet.rs2_value;
+    assign is_ex_npc            =is_ex_packet.NPC;
+
+    assign ex_ic_take_branch    = ex_ic_packet.take_branch;
+    assign ex_ic_branch_target  = ex_ic_packet.result;
+    assign ex_ic_npc            = ex_ic_packet.NPC;
 
 endmodule // pipeline

@@ -206,6 +206,7 @@ module stage_ex(
     );
 
     // Pass-throughs
+    assign ex_ic_packet.inst = is_ex_reg.inst;
     assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
 					  is_mult ? mult_result : alu_result;
     assign ex_ic_packet.NPC    = is_ex_reg.NPC;

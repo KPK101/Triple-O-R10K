@@ -180,6 +180,14 @@ void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
 
 }
 
+void print_branch(int take_branch, int branch_target)
+{
+    if (ppfile == NULL)
+        return;
+
+    fprintf(ppfile, "%dbranch=%d  ", take_branch,branch_target);
+}
+
 void print_membus(int proc2mem_command, int mem2proc_response,
                   int proc2mem_addr_hi, int proc2mem_addr_lo,
                   int proc2mem_data_hi, int proc2mem_data_lo)
