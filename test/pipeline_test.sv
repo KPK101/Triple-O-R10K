@@ -29,6 +29,9 @@ import "DPI-C" function void print_membus(int proc2mem_command, int mem2proc_res
                                           int proc2mem_data_hi, int proc2mem_data_lo);
 import "DPI-C" function void print_close();
 
+import "DPI-C" function void print_availability(int freelist_free, int rs_free, int rob_free);
+import "DPI-C" function void print_free_list(int free_list_hi, int free_list_lo, int arc_free_list_hi, int arc_free_list_lo);
+
 
 module testbench;
     // used to parameterize which files are used for memory and writeback/pipeline outputs
@@ -88,6 +91,13 @@ module testbench;
     logic [31:0]      ir_inst_dbg;
     logic             ir_valid_dbg;
 
+    logic             fl_free_dbg;
+    logic             rob_free_dbg;
+    logic             rs_free_dbg;
+
+    logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg;
+	logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg;
+
     logic             ir_b_dbg;
     logic [`XLEN-1:0] ir_baddr_dbg;
     
@@ -98,8 +108,9 @@ module testbench;
     logic [`XLEN-1:0] is_ex_npc;
 
     logic             ex_ic_take_branch;
-    logic [`XLEN-1:0]            ex_ic_branch_target;
+    logic [`XLEN-1:0] ex_ic_branch_target;
     logic             ex_ic_npc;
+
 
     // Instantiate the Pipeline
     pipeline core (
@@ -146,6 +157,13 @@ module testbench;
         .ir_NPC_dbg   (ir_NPC_dbg),
         .ir_inst_dbg  (ir_inst_dbg),
         .ir_valid_dbg (ir_valid_dbg),
+
+        .fl_free_dbg   (fl_free_dbg),
+        .rob_free_dbg  (rob_free_dbg),
+        .rs_free_dbg   (rs_free_dbg),
+        
+        .phys_reg_free_dbg(phys_reg_free_dbg),
+        .phys_reg_arch_free_dbg(phys_reg_arch_free_dbg),
 
         .ir_b_dbg     (ir_b_dbg),
         .ir_baddr_dbg (ir_baddr_dbg),
@@ -223,10 +241,6 @@ module testbench;
 
 
     initial begin
-        $monitor("cb:%b ucb:%b rs1:%d rs2:%d npc:%d \n tb:%b bt:%d nnpc:%d\n",
-        is_ex_cond_branch,is_ex_uncond_branch,is_ex_rs1,is_ex_rs2,is_ex_npc,
-        ex_ic_take_branch,ex_ic_branch_target,ex_ic_npc
-        );
         //$dumpvars;
 
         // P4 NOTE: You must keep memory loading here the same for the autograder
@@ -320,6 +334,9 @@ module testbench;
             print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
                 32'b0, proc2mem_addr[31:0],
                 proc2mem_data[63:32], proc2mem_data[31:0]);
+
+            // print_availability(fl_free_dbg,rs_free_dbg,rob_free_dbg);
+            // print_free_list(phys_reg_free_dbg[63:32],phys_reg_free_dbg[31:0],phys_reg_arch_free_dbg[63:32],phys_reg_arch_free_dbg[31:0]);
 
             // print register write information to the writeback output file
             if (pipeline_completed_insts > 0) begin

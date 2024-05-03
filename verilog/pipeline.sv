@@ -57,6 +57,13 @@ module pipeline (
     output logic [31:0]      ir_inst_dbg,
     output logic             ir_valid_dbg,
 
+    output logic             fl_free_dbg,
+    output logic             rob_free_dbg,
+    output logic             rs_free_dbg,
+
+	output logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg,
+	output logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg,
+
     output logic             ir_b_dbg,
     output logic [`XLEN-1:0] ir_baddr_dbg,
 
@@ -197,7 +204,9 @@ module pipeline (
 	    
 	    .id_fl_packet(id_fl_packet),
 	    .ir_fl_packet(ir_fl_packet),
-	    .fl_id_packet(fl_id_packet)
+	    .fl_id_packet(fl_id_packet),
+        .phys_reg_free_dbg(phys_reg_free_dbg),
+        .phys_reg_arch_free_dbg(phys_reg_arch_free_dbg)
 	);
 	
 	//PRF
@@ -312,6 +321,7 @@ module pipeline (
         if (reset || interrupt) begin
             is_ex_reg.inst <= `NOP;
             is_ex_reg.valid <= 0;
+            is_ex_reg.NPC <= 0;
         end if (!is_stall) begin
             is_ex_reg <= is_ex_packet;
         end
@@ -351,6 +361,7 @@ module pipeline (
         if (reset || is_stall || interrupt) begin
             ex_ic_reg.inst <= `NOP;
             ex_ic_reg.valid <= 0;
+            ex_ic_reg.NPC <= 0;
         end else begin
             ex_ic_reg <= ex_ic_packet;
         end
@@ -513,5 +524,9 @@ module pipeline (
     assign ex_ic_take_branch    = ex_ic_packet.take_branch;
     assign ex_ic_branch_target  = ex_ic_packet.result;
     assign ex_ic_npc            = ex_ic_packet.NPC;
+
+    assign fl_free_dbg          = fl_id_packet.free;
+    assign rs_free_dbg          = rs_id_packet.free;
+    assign rob_free_dbg         = rob_id_packet.free;
 
 endmodule // pipeline

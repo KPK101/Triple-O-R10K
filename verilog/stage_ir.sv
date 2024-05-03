@@ -17,11 +17,11 @@ module stage_ir(
 );
     assign ir_fl_packet.retire_t = rob_ir_packet.retire_t;
     assign ir_fl_packet.retire_t_old = rob_ir_packet.retire_t_old;
-    assign ir_fl_packet.retire_en = rob_ir_packet.retire_en;
+    assign ir_fl_packet.retire_en = rob_ir_packet.dest_reg_idx != `ZERO_REG && rob_ir_packet.retire_en;
     
     assign ir_mt_packet.retire_t = rob_ir_packet.retire_t;
     assign ir_mt_packet.retire_t_old = rob_ir_packet.retire_t_old;
-    assign ir_mt_packet.retire_en = rob_ir_packet.retire_en;
+    assign ir_mt_packet.retire_en = rob_ir_packet.dest_reg_idx != `ZERO_REG && rob_ir_packet.retire_en;
     
     assign pipe_packet.completed_insts = {3'b0, rob_ir_packet.retire_en};
     assign pipe_packet.error_status = rob_ir_packet.halt ? HALTED_ON_WFI : NO_ERROR;

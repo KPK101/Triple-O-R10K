@@ -8,12 +8,18 @@ module free_list (
 	
 	input IR_FL_PACKET ir_fl_packet,
 	
-	output FL_ID_PACKET fl_id_packet
+	output FL_ID_PACKET fl_id_packet,
+
+	output logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg,
+	output logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg
 );
 
 	//Array that keeps track if reg is free
 	logic [`PHYS_REG_SZ-1:0] phys_reg_free;
 	logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free;
+
+	assign phys_reg_free_dbg = phys_reg_free;
+	assign phys_reg_arch_free_dbg = phys_reg_arch_free;
 	
 	always_comb begin
 		//Default output
@@ -52,7 +58,7 @@ module free_list (
 				phys_reg_free[fl_id_packet.free_tag.phys_reg] <= 1'b0;
 			end
 			//When retire is enabled, free t_old tag
-			if (ir_fl_packet.retire_en && ir_fl_packet.retire_t.phys_reg != 0) begin
+			if (ir_fl_packet.retire_en && ir_fl_packet.retire_t_old.phys_reg != 0) begin
 				phys_reg_free[ir_fl_packet.retire_t_old.phys_reg] <= 1'b1;
 				phys_reg_arch_free[ir_fl_packet.retire_t_old.phys_reg] <= 1'b1;
 				phys_reg_arch_free[ir_fl_packet.retire_t.phys_reg] <= 1'b0;

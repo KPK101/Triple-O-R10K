@@ -36,8 +36,8 @@ module rs(
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHSU ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
 	
-	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
-							    id_rs_packet.decoder_packet.rd_mem	? 1 :
+	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 1 :
+							    id_rs_packet.decoder_packet.rd_mem	? 2 :
 							    is_mult			                ? 0 :
 							    rs_table[3].busy	                ? 4 : 3;
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
@@ -45,13 +45,19 @@ module rs(
 	//Handle rs -> is issue logic
 	always_comb begin
 		rs_is_packet.issue_en = 0;
-		foreach (rs_table[i]) begin
-			if((!rs_table[i].issued) &&
-			   (!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
-			   (!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready) &&
-			   (rs_table[i].busy)) begin
-				rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
-				rs_is_packet.issue_en = 1;
+		if (interrupt) begin
+			rs_is_packet.decoder_packet.inst = `NOP;
+			rs_is_packet.decoder_packet.valid = 0;
+			rs_is_packet.decoder_packet.NPC = 0;
+		end else begin
+			foreach (rs_table[i]) begin
+				if((!rs_table[i].issued) &&
+				(!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
+				(!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready) &&
+				(rs_table[i].busy)) begin
+					rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
+					rs_is_packet.issue_en = 1;
+				end
 			end
 		end
 	end
@@ -60,8 +66,8 @@ module rs(
 		//Handle reset
 		if (reset || interrupt) begin
 			foreach (rs_table[i]) begin
-				rs_table[i].busy = 0;
-				rs_table[i].issued = 0;
+				rs_table[i].busy <= 0;
+				rs_table[i].issued <= 0;
 			end
 		end else begin
 			//Handle CDB

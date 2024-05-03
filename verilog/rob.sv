@@ -42,21 +42,38 @@ module rob (
 	
 	//Handle rob->id
 	assign rob_id_packet.free = counter != `ROB_SZ;
+	assign rob_ir_packet.retire_en = rob[head_idx].completed;
 	
 	//Handle rob->retire output
-	assign rob_ir_packet.retire_en = rob[head_idx].completed;
-	assign rob_ir_packet.retire_t = rob[head_idx].t;
-	assign rob_ir_packet.retire_t_old = rob[head_idx].t_old;
-	
-	assign rob_ir_packet.inst = rob[head_idx].inst;
-	assign rob_ir_packet.halt = rob[head_idx].halt;
-	assign rob_ir_packet.wr_mem = rob[head_idx].wr_mem;
-	assign rob_ir_packet.dest_reg_idx = rob[head_idx].dest_reg_idx;
-	assign rob_ir_packet.NPC = rob[head_idx].NPC;
-	
-	assign rob_ir_packet.result = rob[head_idx].result;
-	assign rob_ir_packet.rs2_value = rob[head_idx].rs2_value;
-	assign rob_ir_packet.take_branch = rob[head_idx].take_branch;
+	always_comb begin 
+		if (rob_ir_packet.retire_en) begin
+			rob_ir_packet.retire_t = rob[head_idx].t;
+			rob_ir_packet.retire_t_old = rob[head_idx].t_old;
+		
+			rob_ir_packet.inst = rob[head_idx].inst;
+			rob_ir_packet.halt = rob[head_idx].halt;
+			rob_ir_packet.wr_mem = rob[head_idx].wr_mem;
+			rob_ir_packet.dest_reg_idx = rob[head_idx].dest_reg_idx;
+			rob_ir_packet.NPC = rob[head_idx].NPC;
+		
+			rob_ir_packet.result = rob[head_idx].result;
+			rob_ir_packet.rs2_value = rob[head_idx].rs2_value;
+			rob_ir_packet.take_branch = rob[head_idx].take_branch;
+		end else begin
+			rob_ir_packet.retire_t = 0;
+			rob_ir_packet.retire_t_old = 0;
+		
+			rob_ir_packet.inst = `NOP;
+			rob_ir_packet.halt = 0;
+			rob_ir_packet.wr_mem = 0;
+			rob_ir_packet.dest_reg_idx = 0;
+			rob_ir_packet.NPC = 0;
+		
+			rob_ir_packet.result = 0;
+			rob_ir_packet.rs2_value = 0;
+			rob_ir_packet.take_branch = 0;
+		end
+	end
 	
 	//Handle internal counter
 	assign next_counter = rob_ir_packet.retire_en && !(rob_id_packet.free && id_rob_packet.write_en) ? counter - 1 :
