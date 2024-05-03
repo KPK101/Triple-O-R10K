@@ -24,7 +24,7 @@ module free_list (
 		//TODO:implement free forwarding
 		//Look for free tag
 		foreach (phys_reg_free[i]) begin
-			if (phys_reg_free[i]) begin
+			if (phys_reg_free[i] && i != 0) begin
 				fl_id_packet.free_tag.valid = 1;
 				fl_id_packet.free_tag.phys_reg = i;
 				fl_id_packet.free = 1;
@@ -52,7 +52,7 @@ module free_list (
 				phys_reg_free[fl_id_packet.free_tag.phys_reg] <= 1'b0;
 			end
 			//When retire is enabled, free t_old tag
-			if (ir_fl_packet.retire_en) begin
+			if (ir_fl_packet.retire_en && ir_fl_packet.retire_t.phys_reg != 0) begin
 				phys_reg_free[ir_fl_packet.retire_t_old.phys_reg] <= 1'b1;
 				phys_reg_arch_free[ir_fl_packet.retire_t_old.phys_reg] <= 1'b1;
 				phys_reg_arch_free[ir_fl_packet.retire_t.phys_reg] <= 1'b0;

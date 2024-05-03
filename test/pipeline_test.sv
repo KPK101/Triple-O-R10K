@@ -98,7 +98,7 @@ module testbench;
     logic [`XLEN-1:0] is_ex_npc;
 
     logic             ex_ic_take_branch;
-    logic             ex_ic_branch_target;
+    logic [`XLEN-1:0]            ex_ic_branch_target;
     logic             ex_ic_npc;
 
     // Instantiate the Pipeline
@@ -332,7 +332,7 @@ module testbench;
             end
 
             // deal with any halting conditions
-            if(pipeline_error_status != NO_ERROR || debug_counter > 500) begin
+            if(pipeline_error_status != NO_ERROR || debug_counter > 50000) begin
                 $display("@@@ Unified Memory contents hex on left, decimal on right: ");
                 show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
                 // 8Bytes per line, 16kB total

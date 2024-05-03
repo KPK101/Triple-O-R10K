@@ -68,7 +68,7 @@ module pipeline (
     output logic [`XLEN-1:0] is_ex_npc,
 
     output logic             ex_ic_take_branch,
-    output logic             ex_ic_branch_target,
+    output logic [`XLEN-1:0] ex_ic_branch_target,
     output logic             ex_ic_npc
 );
     //////////////////////////////////////////////////

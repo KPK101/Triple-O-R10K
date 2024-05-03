@@ -61,6 +61,7 @@ module rs(
 		if (reset || interrupt) begin
 			foreach (rs_table[i]) begin
 				rs_table[i].busy = 0;
+				rs_table[i].issued = 0;
 			end
 		end else begin
 			//Handle CDB

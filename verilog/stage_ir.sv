@@ -30,7 +30,7 @@ module stage_ir(
     assign pipe_packet.wr_data = rob_ir_packet.result;
     assign pipe_packet.NPC = rob_ir_packet.NPC;
 
-    assign interrupt = rob_ir_packet.take_branch;
+    assign interrupt = rob_ir_packet.retire_en && rob_ir_packet.take_branch;
     assign branch_target = rob_ir_packet.result;
     
     assign store2Dmem_command = (rob_ir_packet.retire_en && rob_ir_packet.wr_mem) ? BUS_STORE : BUS_NONE;
