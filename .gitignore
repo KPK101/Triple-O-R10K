@@ -35,9 +35,8 @@ verdi*
 novas*
 *fsdb*
 
-# program memory compilation
+# program memory compilation YOU NEED MEM
 *.elf
-*.mem
 *.dump
 *.dump_*
 

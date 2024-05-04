@@ -180,6 +180,24 @@ void print_reg(int wb_reg_wr_data_out_hi, int wb_reg_wr_data_out_lo,
 
 }
 
+void print_branch(int take_branch, int branch_target)
+{
+    if (ppfile == NULL)
+        return;
+    if (take_branch)
+        fprintf(ppfile, "B[%d]  ",branch_target);
+}
+
+void print_availability(int freelist_free, int rs_free, int rob_free)
+{
+    fprintf(ppfile, "fl:%d rs:%d rob:%d  ",freelist_free,rs_free,rob_free);
+}
+
+void print_free_list(int free_list_hi, int free_list_lo, int arc_free_list_hi, int arc_free_list_lo)
+{
+    fprintf(ppfile, "fl:%08x%08x afl:%08x%08x  ",free_list_hi,free_list_lo,arc_free_list_hi,arc_free_list_lo);
+}
+
 void print_membus(int proc2mem_command, int mem2proc_response,
                   int proc2mem_addr_hi, int proc2mem_addr_lo,
                   int proc2mem_data_hi, int proc2mem_data_lo)
@@ -211,8 +229,8 @@ void print_membus(int proc2mem_command, int mem2proc_response,
             fprintf(ppfile, "0x%x%x", proc2mem_data_hi, proc2mem_data_lo);
     }
     if(mem2proc_response) {
-        fprintf(ppfile, " accepted %d", mem2proc_response);
+        fprintf(ppfile, " accepted %d  ", mem2proc_response);
     } else {
-        fprintf(ppfile, " rejected");
+        fprintf(ppfile, " rejected  ");
     }
 }

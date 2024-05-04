@@ -47,9 +47,9 @@ initial begin
 $display("STARTING TESTBENCH!");
 
     reset = 1;
-$display("@@@ Time:%4.0f clock:%b reset:%b T1:%b T2:%b reg_1:%b reg_2:%b write_en:%b dest_reg:%b new_tag:%b T_old:%b", $time, clock, reset, T1.phys_reg, T2.phys_reg, reg_1, reg_2, write_en, dest_reg, new_tag, T_old);
+$display("@@@ Time:%4.0f clock:%b reset:%b T1:%b T2:%b reg_1:%b reg_2:%b write_en:%b dest_reg:%b new_tag:%b T_old:%b", $time, clock, reset, T1, T2,reg_1, reg_2, write_en, dest_reg, new_tag, T_old);
 
-$monitor("@@@ Time:%4.0f clock:%b reset:%b T1:%b T2:%b reg_1:%b reg_2:%b write_en:%b dest_reg:%b new_tag:%b T_old:%b", $time, clock, reset, T1.phys_reg, T2.phys_reg, reg_1, reg_2, write_en, dest_reg, new_tag, T_old);
+$monitor("@@@ Time:%4.0f clock:%b reset:%b T1:%b T2:%b reg_1:%b reg_2:%b write_en:%b dest_reg:%b new_tag:%b T_old:%b", $time, clock, reset, T1, T2,reg_1, reg_2, write_en, dest_reg, new_tag, T_old);
     // Release reset
     #10;
     reset = 0;
@@ -83,4 +83,5 @@ initial begin
     $dumpvars(0, map_table_tb);
 end
 
-endmodule
+endmodule0........
+..0

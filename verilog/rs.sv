@@ -10,12 +10,23 @@ typedef struct packed{
 module rs(
 	input clock,
 	input reset,
+<<<<<<< HEAD
+=======
+	
+>>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
 	//bus input
 	input interrupt,
 	input TAG cdb,
+<<<<<<< HEAD
 	input cdb_en,
 	input ID_RS_PACKET id_rs_packet, // decoder_packet + write_en 
 	input EX_RS_PACKET ex_rs_packet, // remove_idx + remove_en
+=======
+	input logic cdb_en,
+	input interrupt,
+
+	input is_stall,
+>>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
 	
 	output [4:0] rs_busy_status, // 5 bit 0 -> 4 for debug purpose
 	output logic is_mult,
@@ -35,6 +46,7 @@ module rs(
 					 !is_mult			    ? 0 :
 					 rs_table[3].busy	            ? 4 : 3; 
 	
+<<<<<<< HEAD
 	// for debugging only 
 	assign rs_busy_status[0] = rs_table[0].busy ; 
 	assign rs_busy_status[1] = rs_table[1].busy ;
@@ -51,16 +63,32 @@ module rs(
 	*/
 
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy; 
+=======
+	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 1 :
+							    id_rs_packet.decoder_packet.rd_mem	? 2 :
+							    is_mult			                ? 0 :
+							    rs_table[3].busy	                ? 4 : 3;
+	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
+>>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
 
 	//Handle rs -> is issue logic
 	always_comb begin
 		rs_is_packet.issue_en = 0;
-		foreach (rs_table[i]) begin
-			if((!rs_table[i].issued) && (rs_table[i].busy) && 
-			   (!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
-			   (!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready)) begin
-				rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
-				rs_is_packet.issue_en = 1;  
+
+		if (interrupt) begin
+			rs_is_packet.decoder_packet.inst = `NOP;
+			rs_is_packet.decoder_packet.valid = 0;
+			rs_is_packet.decoder_packet.NPC = 0;
+		end else begin
+			foreach (rs_table[i]) begin
+				if((!rs_table[i].issued) &&
+				(!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
+				(!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready) &&
+				(rs_table[i].busy)) begin
+					rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
+					rs_is_packet.issue_en = 1;
+				end
+
 			end
 		end
 	end
@@ -69,37 +97,44 @@ module rs(
 		//Handle reset
 		if (reset || interrupt) begin
 			foreach (rs_table[i]) begin
-				rs_table[i].busy = 0;
+				rs_table[i].busy <= 0;
+				rs_table[i].issued <= 0;
 			end
 		end else begin
 			//Handle CDB
 			if (cdb_en) begin
 				foreach (rs_table[i]) begin
-					if (rs_table[i].decoder_packet.t1.valid && 
-					    rs_table[i].decoder_packet.t1.phys_reg == cdb.phys_reg) begin
+					if (rs_table[i].decoder_packet.t1.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t1.ready <= 1;
+						rs_table[i].decoder_packet.t1.valid <= 1;
 					end
-					if (rs_table[i].decoder_packet.t2.valid && 
-					    rs_table[i].decoder_packet.t2.phys_reg == cdb.phys_reg) begin
+					if (rs_table[i].decoder_packet.t2.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t2.ready <= 1;
+						rs_table[i].decoder_packet.t2.valid <= 1;
 					end
 				end
 			end
 			
 			//Handle issue marking
-			if (rs_is_packet.issue_en) begin
+			if (rs_is_packet.issue_en && !is_stall) begin
 			    rs_table[rs_is_packet.decoder_packet.rs_idx].issued <= 1;
 			end
 			
 			//Handle rs -> id writes
-			if (!rs_table[rs_id_packet.free_idx].busy && id_rs_packet.write_en) begin 
-				rs_table[rs_id_packet.free_idx].busy <= 1;
-				rs_table[rs_id_packet.free_idx].decoder_packet <= id_rs_packet.decoder_packet;
+
+			if (rs_id_packet.free && id_rs_packet.write_en) begin
+				rs_table[rs_id_packet.free_idx].busy   <= 1'b1;
+				rs_table[rs_id_packet.free_idx].issued   <= 1'b0;
+				rs_table[rs_id_packet.free_idx].decoder_packet    <= id_rs_packet.decoder_packet;
+
 			end
 			
 			//Handle ex -> id removes
 			if (ex_rs_packet.remove_en) begin
-				rs_table[ex_rs_packet.remove_idx].busy <= 0; 
+
+				rs_table[ex_rs_packet.remove_idx].busy <= 0;
+				rs_table[ex_rs_packet.remove_idx].issued   <= 0;
+
 			end
 		end
 	end

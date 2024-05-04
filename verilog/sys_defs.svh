@@ -70,13 +70,17 @@
 // a double word. The original processor won't work with this defined. Your new
 // processor will have to account for this effect on mem.
 // Notably, you can no longer write data without first reading.ALU_OPA_SELECT opa_select,
-`define CACHE_MODE
+
+//TODO MAKE THIS WORK!
+//`define CACHE_MODE
 
 // you are not allowed to change this definition for your final processor
 // the project 3 processor has a massive boost in performance just from having no mem latency
 // see if you can beat it's CPI in project 4 even with a 100ns latency!
-// `define MEM_LATENCY_IN_CYCLES  0
-`define MEM_LATENCY_IN_CYCLES (100.0/`CLOCK_PERIOD+0.49999)
+`define MEM_LATENCY_IN_CYCLES  0
+
+//TODO MAKE THIS WORK!
+//`define MEM_LATENCY_IN_CYCLES (100.0/`CLOCK_PERIOD+0.49999)
 // the 0.49999 is to force ceiling(100/period). The default behavior for
 // float to integer conversion is rounding to nearest
 
@@ -367,7 +371,8 @@ typedef struct packed{
     TAG t_in;
     TAG t_old_in;
     
-    logic halt;
+	INST  inst;
+	logic halt;
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
@@ -395,14 +400,15 @@ typedef struct packed{
     TAG retire_t;
     TAG retire_t_old;
     
+	INST inst;
     logic halt;
 	logic wr_mem;
 	logic [4:0] dest_reg_idx;
 	logic [`XLEN-1:0] NPC;
 	
+	logic take_branch;
 	logic [`XLEN-1:0] result;
 	logic [`XLEN-1:0] rs2_value;
-	logic take_branch;
 	
 }ROB_IR_PACKET;
 
@@ -437,7 +443,7 @@ typedef struct packed{
     TAG write_tag;
     logic [`XLEN-1:0] write_data;
     logic write_en;
-}EX_PRF_PACKET;
+}IC_PRF_PACKET;
 
 typedef struct packed{
     logic [`XLEN-1:0] read_out_1;
@@ -466,6 +472,7 @@ typedef struct packed {
 
     ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
     ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+    //DECODER_PACKET decoder_packet;
 
     TAG         dest_tag;  // destination tag
     ALU_FUNC    alu_func;      // ALU function select (ALU_xxx *)
@@ -485,6 +492,7 @@ typedef struct packed {
 
 
 typedef struct packed {
+    INST              inst;
     logic [`XLEN-1:0] result;
     logic [`XLEN-1:0] NPC;
 
@@ -500,6 +508,14 @@ typedef struct packed {
     
     logic             valid;
 } EX_IC_PACKET;
+ 
+
+typedef struct packed {
+    TAG         write_tag; 
+    logic write_en;
+    logic [`XLEN-1:0] write_data;
+    
+} EX_PRF_PACKET;
 
 typedef struct packed {
     logic [3:0]       completed_insts;

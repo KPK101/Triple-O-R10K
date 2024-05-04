@@ -18,7 +18,7 @@ module stage_if (
     input [`XLEN-1:0] branch_target,  // target pc: use if take_branch is TRUE
     input [63:0]      Imem2proc_data, // data coming back from Instruction memory
 
-    output IF_ID_PACKET      if_packet,
+    output IF_ID_PACKET      if_id_packet,
     output logic [`XLEN-1:0] proc2Imem_addr // address sent to Instruction memory
 );
 
@@ -40,12 +40,12 @@ module stage_if (
     assign proc2Imem_addr = {PC_reg[`XLEN-1:3], 3'b0};
 
     // this mux is because the Imem gives us 64 bits not 32 bits
-    assign if_packet.inst = (~if_valid) ? `NOP :
+    assign if_id_packet.inst = (~if_valid) ? `NOP :
                             PC_reg[2] ? Imem2proc_data[63:32] : Imem2proc_data[31:0];
 
-    assign if_packet.PC  = PC_reg;
-    assign if_packet.NPC = PC_reg + 4; // pass PC+4 down pipeline w/instruction
+    assign if_id_packet.PC  = PC_reg;
+    assign if_id_packet.NPC = PC_reg + 4; // pass PC+4 down pipeline w/instruction
 
-    assign if_packet.valid = if_valid;
+    assign if_id_packet.valid = if_valid;
 
 endmodule // stage_if

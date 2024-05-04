@@ -101,7 +101,7 @@ module decoder (
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_AND;
-                endhas_dest_reg
+                end
                 `RV32_ORI: begin
                     has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
@@ -118,7 +118,7 @@ module decoder (
                     alu_func   = ALU_SLL;
                 end
                 `RV32_SRLI: begin
-                    has_dest   = `TRUE;has_dest_reg
+                    has_dest   = `TRUE;
                     opb_select = OPB_IS_I_IMM;
                     alu_func   = ALU_SRL;
                 end
@@ -187,7 +187,7 @@ module decoder (
                 end
                 `WFI: begin
                     halt = `TRUE;
-                endhas_dest_reg
+                end
                 default: begin
                     illegal = `TRUE;
                 end
@@ -199,8 +199,6 @@ endmodule // decoder
 
 
 module stage_id (
-    input              clock,           // system clock
-    input              reset,           // system reset
     input IF_ID_PACKET if_id_reg,
     input MT_ID_PACKET mt_id_packet,
     input RS_ID_PACKET rs_id_packet,
@@ -211,6 +209,7 @@ module stage_id (
     output ID_RS_PACKET id_rs_packet,
     output ID_ROB_PACKET id_rob_packet,
     output ID_FL_PACKET id_fl_packet,
+    output logic id_stall
 );
 
     //Create decoder_packet for rs
@@ -240,25 +239,25 @@ module stage_id (
         .halt          (decoder_packet.halt),
         .illegal       (decoder_packet.illegal)
     );
-    
     //Helpers
-    logic free;
-    assign free = rs_id_packet.free && rob_id_packet.free && fl_id_packet.free && decoder_packet.valid;
+    logic write;
+    assign write = (if_id_reg.inst != `NOP) && rs_id_packet.free && rob_id_packet.free && fl_id_packet.free && decoder_packet.valid;
     
+    assign id_stall = (if_id_reg.inst == `NOP) || (rs_id_packet.free && rob_id_packet.free && fl_id_packet.free);
+
     logic need_rs1;
     logic need_rs2;
-    assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);
-    
+    assign need_rs1 = (decoder_packet.opa_select == OPA_IS_RS1) || (decoder_packet.cond_branch);    
     assign need_rs2 = (decoder_packet.opb_select == OPB_IS_RS2      || 
                        decoder_packet.opb_select == OPB_IS_B_IMM    || 
                        decoder_packet.opb_select == OPB_IS_S_IMM);
     
     //Assign Map Table Output
-    assign id_mt_packet.read_idx_1 = need_rs1 ? decoder_packet.inst.r.rs1 : 'ZERO_REG;
-    assign id_mt_packet.read_idx_2 = need_rs2 ? decoder_packet.inst.r.rs2 : 'ZERO_REG;
+    assign id_mt_packet.read_idx_1 = need_rs1 ? decoder_packet.inst.r.rs1 : `ZERO_REG;
+    assign id_mt_packet.read_idx_2 = need_rs2 ? decoder_packet.inst.r.rs2 : `ZERO_REG;
     assign id_mt_packet.write_idx = has_dest_reg ? if_id_reg.inst.r.rd : `ZERO_REG;
     assign id_mt_packet.write_tag = fl_id_packet.free_tag;
-    assign id_mt_packet.write_en = free && has_dest_reg;
+    assign id_mt_packet.write_en = write && has_dest_reg;
     
     //Assign Map Table Input
     assign decoder_packet.t = has_dest_reg ? fl_id_packet.free_tag : 0;
@@ -267,17 +266,18 @@ module stage_id (
     
     //Assign Reservation Station Output
     assign id_rs_packet.decoder_packet = decoder_packet;
-    assign id_rs_packet.write_en = free;
+    assign id_rs_packet.write_en = write;
     
     //Assign Reservation Station Input
     assign decoder_packet.rs_idx = rs_id_packet.free_idx;
     
     //Assign Reorder Buffer Output
-    assign id_rob_packet.write_en = free;
+    assign id_rob_packet.write_en = write;
     
     assign id_rob_packet.t_in = fl_id_packet.free_tag;
     assign id_rob_packet.t_old_in = mt_id_packet.write_out;
     
+    assign id_rob_packet.inst = if_id_reg.inst;
     assign id_rob_packet.halt = decoder_packet.halt;
     assign id_rob_packet.wr_mem = decoder_packet.wr_mem;
     assign id_rob_packet.dest_reg_idx = id_mt_packet.write_idx;
@@ -288,6 +288,6 @@ module stage_id (
     assign decoder_packet.rob_idx = rob_id_packet.free_idx;
     
     //Assign Free List Output
-    assign id_fl_packet.pop_en = free && has_dest_reg;
+    assign id_fl_packet.pop_en = write && has_dest_reg;
     
 endmodule // stage_id
