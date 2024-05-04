@@ -46,17 +46,23 @@ module map_table (
 		if (reset) begin
 			foreach (reg_map[i]) begin
 				reg_map[i].phys_reg <= i;
-				reg_map[i].valid <= 1'b1;
 				reg_map[i].ready <= 1'b1;
 			end
 			foreach (arch_reg_map[i]) begin
                 arch_reg_map[i].phys_reg <= i;
-                arch_reg_map[i].valid <= 1'b1;
                 arch_reg_map[i].ready <= 1'b1;
 			end
 		end else if (interrupt) begin
 		    foreach (reg_map[i]) begin
-		        reg_map[i] <= arch_reg_map[i];
+				if (ir_mt_packet.retire_t_old.phys_reg != 0 && arch_reg_map[i].phys_reg == ir_mt_packet.retire_t_old.phys_reg) begin
+					arch_reg_map[i].phys_reg <= ir_mt_packet.retire_t.phys_reg;
+					arch_reg_map[i].ready <= 1'b1;
+
+					reg_map[i].phys_reg <= ir_mt_packet.retire_t.phys_reg;
+					reg_map[i].ready <= 1'b1;
+				end else begin
+					reg_map[i] <= arch_reg_map[i];
+				end
 		    end
 		end else begin
 			//Handle CDB
@@ -75,8 +81,7 @@ module map_table (
 			if(ir_mt_packet.retire_en) begin
 			    foreach (arch_reg_map[i]) begin
 				    if (ir_mt_packet.retire_t_old.phys_reg != 0 && arch_reg_map[i].phys_reg == ir_mt_packet.retire_t_old.phys_reg) begin
-					    arch_reg_map[i] <= ir_mt_packet.retire_t;
-                        arch_reg_map[i].valid <= 1'b1;
+					    arch_reg_map[i].phys_reg <= ir_mt_packet.retire_t.phys_reg;
                         arch_reg_map[i].ready <= 1'b1;
 				    end
 			    end

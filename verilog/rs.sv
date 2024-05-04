@@ -36,7 +36,7 @@ module rs(
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHSU ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
 	
-	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 1 :
+	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
 							    id_rs_packet.decoder_packet.rd_mem	? 2 :
 							    is_mult			                ? 0 :
 							    rs_table[3].busy	                ? 4 : 3;
@@ -45,15 +45,14 @@ module rs(
 	//Handle rs -> is issue logic
 	always_comb begin
 		rs_is_packet.issue_en = 0;
-		if (interrupt) begin
-			rs_is_packet.decoder_packet.inst = `NOP;
-			rs_is_packet.decoder_packet.valid = 0;
-			rs_is_packet.decoder_packet.NPC = 0;
-		end else begin
+		rs_is_packet.decoder_packet.inst = `NOP;
+		rs_is_packet.decoder_packet.valid = 0;
+		rs_is_packet.decoder_packet.NPC = 0;
+		if (!interrupt) begin
 			foreach (rs_table[i]) begin
 				if((!rs_table[i].issued) &&
-				(!rs_table[i].decoder_packet.t1.valid || rs_table[i].decoder_packet.t1.ready) && 
-				(!rs_table[i].decoder_packet.t2.valid || rs_table[i].decoder_packet.t2.ready) &&
+				(rs_table[i].decoder_packet.t1.phys_reg == 0 || rs_table[i].decoder_packet.t1.ready) && 
+				(rs_table[i].decoder_packet.t2.phys_reg == 0 || rs_table[i].decoder_packet.t2.ready) &&
 				(rs_table[i].busy)) begin
 					rs_is_packet.decoder_packet = rs_table[i].decoder_packet;
 					rs_is_packet.issue_en = 1;
@@ -75,11 +74,9 @@ module rs(
 				foreach (rs_table[i]) begin
 					if (rs_table[i].decoder_packet.t1.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t1.ready <= 1;
-						rs_table[i].decoder_packet.t1.valid <= 1;
 					end
 					if (rs_table[i].decoder_packet.t2.phys_reg == cdb.phys_reg) begin
 						rs_table[i].decoder_packet.t2.ready <= 1;
-						rs_table[i].decoder_packet.t2.valid <= 1;
 					end
 				end
 			end
@@ -97,7 +94,7 @@ module rs(
 			end
 			
 			//Handle ex -> id removes
-			if (ex_rs_packet.remove_en) begin
+			if (ex_rs_packet.remove_en && !is_stall) begin
 				rs_table[ex_rs_packet.remove_idx].busy <= 0;
 				rs_table[ex_rs_packet.remove_idx].issued   <= 0;
 			end

@@ -61,6 +61,14 @@ module pipeline (
     output logic             rob_free_dbg,
     output logic             rs_free_dbg,
 
+    output TAG               id_tag1_dbg,
+    output TAG               id_tag2_dbg,
+
+    
+    output [`XLEN-1:0] opa_mux_out_dbg,
+    output [`XLEN-1:0] opb_mux_out_dbg,
+    output ALU_FUNC alu_func_dbg,
+
 	output logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg,
 	output logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg,
 
@@ -212,7 +220,10 @@ module pipeline (
 	//PRF
 	IS_PRF_PACKET is_prf_packet;
 	EX_PRF_PACKET ex_prf_packet;
+    IR_PRF_PACKET ir_prf_packet;
+
 	PRF_IS_PACKET prf_is_packet;
+    PRF_IR_PACKET prf_ir_packet;
 	
 	prf prf (
 	    .clock (clock),
@@ -220,8 +231,10 @@ module pipeline (
 
 	    .is_prf_packet(is_prf_packet),
 	    .ex_prf_packet(ex_prf_packet),
+        .ir_prf_packet(ir_prf_packet),
 
-	    .prf_is_packet(prf_is_packet)
+	    .prf_is_packet(prf_is_packet),
+        .prf_ir_packet(prf_ir_packet)
 	);
 
     //////////////////////////////////////////////////
@@ -345,10 +358,15 @@ module pipeline (
         .ex_rs_packet	(ex_rs_packet),
         .ex_prf_packet	(ex_prf_packet),
 
+        .Dmem2load_data (mem2proc_data[`XLEN-1:0]),
+
         .load2Dmem_command  (load2Dmem_command),
         .load2Dmem_size     (load2Dmem_size),
         .load2Dmem_addr     (load2Dmem_addr),
-        .load2Dmem_data     (load2Dmem_data)
+        .load2Dmem_data     (load2Dmem_data),
+        .opa_mux_out_dbg    (opa_mux_out_dbg),
+        .opb_mux_out_dbg    (opb_mux_out_dbg),
+        .alu_func_dbg       (alu_func_dbg)
     );
 
     //////////////////////////////////////////////////
@@ -405,6 +423,9 @@ module pipeline (
 
         .ir_fl_packet   (ir_fl_packet),
         .ir_mt_packet   (ir_mt_packet),
+        .ir_prf_packet  (ir_prf_packet),
+
+        .prf_ir_packet  (prf_ir_packet),
         .pipe_packet    (pipe_packet),
 
         .interrupt      (interrupt),
@@ -517,8 +538,8 @@ module pipeline (
     
     assign is_ex_cond_branch    =is_ex_packet.cond_branch;
     assign is_ex_uncond_branch  =is_ex_packet.uncond_branch;
-    assign is_ex_rs1            =is_ex_packet.rs1_value;
-    assign is_ex_rs2            =is_ex_packet.rs2_value;
+    assign is_ex_rs1            =rs_is_packet.decoder_packet.t1;
+    assign is_ex_rs2            =rs_is_packet.decoder_packet.t2;
     assign is_ex_npc            =is_ex_packet.NPC;
 
     assign ex_ic_take_branch    = ex_ic_packet.take_branch;
@@ -528,5 +549,8 @@ module pipeline (
     assign fl_free_dbg          = fl_id_packet.free;
     assign rs_free_dbg          = rs_id_packet.free;
     assign rob_free_dbg         = rob_id_packet.free;
+
+    assign id_tag1_dbg          = fl_id_packet.free_tag;
+    assign id_tag2_dbg          = mt_id_packet.read_out_2;
 
 endmodule // pipeline

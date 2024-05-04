@@ -184,8 +184,7 @@ void print_branch(int take_branch, int branch_target)
 {
     if (ppfile == NULL)
         return;
-    if (take_branch)
-        fprintf(ppfile, "B[%d]  ",branch_target);
+    fprintf(ppfile, "B[%d]  ",branch_target);
 }
 
 void print_availability(int freelist_free, int rs_free, int rob_free)
@@ -233,4 +232,9 @@ void print_membus(int proc2mem_command, int mem2proc_response,
     } else {
         fprintf(ppfile, " rejected  ");
     }
+}
+
+void hexdump(int hi, int lo)
+{
+    fprintf(ppfile, "%08x_%08x  ", hi,lo);
 }

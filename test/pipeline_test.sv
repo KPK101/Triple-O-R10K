@@ -31,6 +31,7 @@ import "DPI-C" function void print_close();
 
 import "DPI-C" function void print_availability(int freelist_free, int rs_free, int rob_free);
 import "DPI-C" function void print_free_list(int free_list_hi, int free_list_lo, int arc_free_list_hi, int arc_free_list_lo);
+import "DPI-C" function void hexdump(int hi, int lo);
 
 
 module testbench;
@@ -94,6 +95,14 @@ module testbench;
     logic             fl_free_dbg;
     logic             rob_free_dbg;
     logic             rs_free_dbg;
+
+    TAG            id_tag1_dbg;
+    TAG            id_tag2_dbg;
+
+    
+    logic [`XLEN-1:0] opa_mux_out_dbg;
+    logic [`XLEN-1:0] opb_mux_out_dbg;
+    ALU_FUNC alu_func_dbg;
 
     logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg;
 	logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg;
@@ -161,6 +170,13 @@ module testbench;
         .fl_free_dbg   (fl_free_dbg),
         .rob_free_dbg  (rob_free_dbg),
         .rs_free_dbg   (rs_free_dbg),
+
+        .opa_mux_out_dbg (opa_mux_out_dbg),
+        .opb_mux_out_dbg (opb_mux_out_dbg),
+        .alu_func_dbg    (alu_func_dbg),
+
+        .id_tag1_dbg (id_tag1_dbg),
+        .id_tag2_dbg (id_tag2_dbg),
         
         .phys_reg_free_dbg(phys_reg_free_dbg),
         .phys_reg_arch_free_dbg(phys_reg_arch_free_dbg),
@@ -335,21 +351,22 @@ module testbench;
                 32'b0, proc2mem_addr[31:0],
                 proc2mem_data[63:32], proc2mem_data[31:0]);
 
-            // print_availability(fl_free_dbg,rs_free_dbg,rob_free_dbg);
-            // print_free_list(phys_reg_free_dbg[63:32],phys_reg_free_dbg[31:0],phys_reg_arch_free_dbg[63:32],phys_reg_arch_free_dbg[31:0]);
+            print_availability(fl_free_dbg,rs_free_dbg,rob_free_dbg);
+            print_free_list(phys_reg_free_dbg[63:32],phys_reg_free_dbg[31:0],phys_reg_arch_free_dbg[63:32],phys_reg_arch_free_dbg[31:0]);
+            hexdump(opa_mux_out_dbg[31:0],opb_mux_out_dbg[31:0]);
+            hexdump(0,alu_func_dbg);
+            hexdump(id_tag1_dbg,id_tag2_dbg);
 
             // print register write information to the writeback output file
             if (pipeline_completed_insts > 0) begin
-                if(pipeline_commit_wr_en) begin
+                if(pipeline_commit_wr_en)
                     $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",
                               pipeline_commit_NPC - 4,
                               pipeline_commit_wr_idx,
                               pipeline_commit_wr_data);
-                end
             end
-
             // deal with any halting conditions
-            if(pipeline_error_status != NO_ERROR || debug_counter > 50000) begin
+            if(pipeline_error_status != NO_ERROR || debug_counter > 50000000) begin
                 $display("@@@ Unified Memory contents hex on left, decimal on right: ");
                 show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
                 // 8Bytes per line, 16kB total

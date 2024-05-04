@@ -273,7 +273,6 @@ typedef enum logic [4:0] {
 ///////////////////////////////
 
 typedef struct packed{
-    logic valid;
 	logic [$clog2(`PHYS_REG_SZ)-1:0] phys_reg;
 	logic ready;
 } TAG;
@@ -441,11 +440,20 @@ typedef struct packed{
     TAG read_tag_2;
 }IS_PRF_PACKET;
 
-typedef struct packed{
-    TAG write_tag;
-    logic [`XLEN-1:0] write_data;
+typedef struct packed {
+    TAG         write_tag; 
     logic write_en;
-}IC_PRF_PACKET;
+    logic [`XLEN-1:0] write_data;
+    
+} EX_PRF_PACKET;
+
+typedef struct packed{
+    TAG read_tag;
+}IR_PRF_PACKET;
+
+typedef struct packed{
+    logic [`XLEN-1:0] read_out;
+}PRF_IR_PACKET;
 
 typedef struct packed{
     logic [`XLEN-1:0] read_out_1;
@@ -506,18 +514,15 @@ typedef struct packed {
     logic             halt;
     logic             illegal;
     logic             csr_op;
+    
+    
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
     
     logic             valid;
 } EX_IC_PACKET;
  
 
-typedef struct packed {
-    TAG         write_tag; 
-    logic write_en;
-    logic [`XLEN-1:0] write_data;
-    
-} EX_PRF_PACKET;
+
 
 typedef struct packed {
     logic [3:0]       completed_insts;

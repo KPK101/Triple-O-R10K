@@ -23,7 +23,6 @@ module free_list (
 	
 	always_comb begin
 		//Default output
-		fl_id_packet.free_tag.valid = 0;
 		fl_id_packet.free_tag.ready = 0;
 		fl_id_packet.free = 0;
 		
@@ -31,7 +30,6 @@ module free_list (
 		//Look for free tag
 		foreach (phys_reg_free[i]) begin
 			if (phys_reg_free[i] && i != 0) begin
-				fl_id_packet.free_tag.valid = 1;
 				fl_id_packet.free_tag.phys_reg = i;
 				fl_id_packet.free = 1;
 			end
@@ -50,8 +48,16 @@ module free_list (
 			end
 		end else if (interrupt) begin
 		    foreach (phys_reg_free[i]) begin
-		        phys_reg_free[i] <= phys_reg_arch_free[i];
-		    end
+				if (ir_fl_packet.retire_en && i != 0 && ir_fl_packet.retire_t_old.phys_reg == i) begin
+					phys_reg_free[i] <= 1'b1;
+					phys_reg_arch_free[i] <= 1'b1;
+				end else if (ir_fl_packet.retire_en && i != 0 && ir_fl_packet.retire_t.phys_reg == i) begin
+					phys_reg_free[i] <= 1'b0;
+					phys_reg_arch_free[i] <= 1'b0;
+				end else begin
+					phys_reg_free[i] <= phys_reg_arch_free[i];
+				end
+			end
 		end else begin
 			//When pop is enabled, set current free tag to be not free
 			if (id_fl_packet.pop_en) begin

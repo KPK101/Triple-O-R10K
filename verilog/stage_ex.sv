@@ -67,15 +67,14 @@ endmodule
 
 module load (
     input IS_EX_PACKET is_ex_reg,
-    input [`XLEN-1:0] opa,
-    input [`XLEN-1:0] opb,
-    input [`XLEN-1:0] Dmem2load_data,
-    input [`XLEN-1:0] Dmem2proc_data,
+    input logic [`XLEN-1:0] opa,
+    input logic [`XLEN-1:0] opb,
+    input logic [`XLEN-1:0] Dmem2load_data,
     
-    output [1:0]       load2Dmem_command,
+    output logic [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
-    output [`XLEN-1:0] load2Dmem_addr,
-    output [`XLEN-1:0] load2Dmem_data,
+    output logic [`XLEN-1:0] load2Dmem_addr,
+    output logic [`XLEN-1:0] load2Dmem_data,
     output logic [`XLEN-1:0] result
 );
     logic rd_unsigned;
@@ -88,7 +87,7 @@ module load (
  
     
     always_comb begin
-        //result = Dmem2proc_data;
+        result = Dmem2load_data;
         if (rd_unsigned) begin
             // unsigned: zero-extend the data
             if (load2Dmem_size == BYTE) begin
@@ -99,9 +98,9 @@ module load (
         end else begin
             // signed: sign-extend the data
             if (load2Dmem_size[1:0] == BYTE) begin
-                result[`XLEN-1:8] = {(`XLEN-8){Dmem2proc_data[7]}};
+                result[`XLEN-1:8] = {(`XLEN-8){Dmem2load_data[7]}};
             end else if (load2Dmem_size == HALF) begin
-                result[`XLEN-1:16] = {(`XLEN-16){Dmem2proc_data[15]}};
+                result[`XLEN-1:16] = {(`XLEN-16){Dmem2load_data[15]}};
             end
         end
     end
@@ -141,6 +140,10 @@ module stage_ex(
     output EX_RS_PACKET ex_rs_packet,
     output EX_PRF_PACKET ex_prf_packet,
 
+    output [`XLEN-1:0] opa_mux_out_dbg,
+    output [`XLEN-1:0] opb_mux_out_dbg,
+    output ALU_FUNC alu_func_dbg,
+
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
     output [`XLEN-1:0] load2Dmem_addr,
@@ -152,6 +155,11 @@ module stage_ex(
     logic [`XLEN-1:0] alu_result, mult_result, load_result;
     logic is_mult;
     logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
+
+    
+    assign opa_mux_out_dbg = ex_prf_packet.write_tag;
+    assign opb_mux_out_dbg = ex_prf_packet.write_data;
+    assign alu_func_dbg = ex_prf_packet.write_en;
     
    /* assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
 		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
@@ -208,7 +216,7 @@ module stage_ex(
     // Pass-throughs
     assign ex_ic_packet.inst = is_ex_reg.inst;
     assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
-					  is_mult ? mult_result : alu_result;
+					             is_mult ? mult_result : alu_result;
     assign ex_ic_packet.NPC    = is_ex_reg.NPC;
     assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
     assign ex_ic_packet.rs2_value = is_ex_reg.rs2_value;
@@ -224,8 +232,8 @@ module stage_ex(
     assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
     
     assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
-    assign ex_prf_packet.write_data = ex_ic_packet.result;
-    assign ex_prf_packet.write_en = (is_ex_reg.valid && !is_ex_reg.illegal) && is_ex_reg.dest_tag.valid && is_ex_reg.dest_tag.phys_reg != 0;
+    assign ex_prf_packet.write_data = (ex_ic_packet.take_branch) ? is_ex_reg.NPC : ex_ic_packet.result;
+    assign ex_prf_packet.write_en = is_ex_reg.valid && !is_ex_reg.illegal && (is_ex_reg.dest_tag.phys_reg != 0);
 
     always_comb begin
         case (is_ex_reg.opa_select)

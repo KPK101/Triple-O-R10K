@@ -10,7 +10,8 @@ module stage_ic(
     
 );
 
-    assign cdb = ex_ic_reg.dest_tag;
+    assign cdb.phys_reg = ex_ic_reg.dest_tag.phys_reg;
+    assign cdb.ready = ex_ic_reg.valid;
     assign cdb_en = ex_ic_reg.valid;
 
     assign ic_rob_packet.complete_en = ex_ic_reg.valid;

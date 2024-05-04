@@ -85,10 +85,9 @@ module rob (
 			head_idx <= 0;
 			rob_id_packet.free_idx <= 0;
 			counter <= 0;
-			//Invalidate 0 index entry for insertion
-			rob[0].t.valid <= 0;
-			rob[0].t_old.valid <= 0;
-			rob[0].completed <= 0;
+			foreach (rob[i]) begin
+				rob[i].completed <= 0;
+			end
 		end else begin
 			//Handle id->rob
 			if (rob_id_packet.free && id_rob_packet.write_en) begin
