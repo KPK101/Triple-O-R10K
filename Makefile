@@ -183,7 +183,7 @@ STAGE_ID_DEPS = verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/r
 $(call DEPS,stage_id): $(STAGE_ID_DEPS)
 
 MULT_DEPS = verilog/mult_stage.sv
-$(call DEPS,mult): $(MULT_DEPS)
+$(call DEPS,mult_test): $(MULT_DEPS)
 
 # No dependencies for the rob (TODO: add any you create)
 ROB_DEPS =
@@ -320,7 +320,8 @@ HEADERS = verilog/sys_defs.svh \
 
 TESTBENCH = test/pipeline_test.sv \
             test/pipeline_print.c \
-            test/mem.sv
+            test/mem.sv \
+			test/mult_test.sv \
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
@@ -334,7 +335,8 @@ SOURCES = verilog/pipeline.sv \
 		  verilog/stage_is.sv \
 		  verilog/stage_ex.sv \
 		  verilog/stage_ic.sv \
-		  verilog/stage_ir.sv
+		  verilog/stage_ir.sv \
+		  verilog/mult_stage.sv \
 
 SYNTH_FILES = synth/pipeline.vg
 

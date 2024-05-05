@@ -30,16 +30,35 @@ module rs(
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;
 
 	//Handle rs -> id logic
-	logic is_mult;
+	logic is_mult, is_mem;
 	assign is_mult =        id_rs_packet.decoder_packet.alu_func == ALU_MUL ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULH ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHSU ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
 	
-	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 2 :
-							    id_rs_packet.decoder_packet.rd_mem	? 2 :
-							    is_mult			                ? 0 :
-							    rs_table[3].busy	                ? 4 : 3;
+	assign is_mem = id_rs_packet.decoder_packet.wr_mem || id_rs_packet.decoder_packet.rd_mem;
+
+
+	always_comb begin
+		if (is_mem) begin
+			rs_id_packet.free_idx = 0;
+		end else if (is_mult) begin
+			rs_id_packet.free_idx = `NUM_FU_MULT;
+			for(int i = `NUM_FU_MULT; i > 0; i = i - 1) begin
+				if (!rs_table[i].busy) begin
+					rs_id_packet.free_idx = i;
+				end
+			end
+		end else begin
+			rs_id_packet.free_idx = `RS_SZ - 1;
+			for(int i = `RS_SZ - 1; i > `RS_SZ - 1 - `NUM_FU_MULT; i = i - 1) begin
+				if (!rs_table[i].busy) begin
+					rs_id_packet.free_idx = i;
+				end
+			end
+		end
+	end
+	
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
 
 	//Handle rs -> is issue logic

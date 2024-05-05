@@ -38,11 +38,12 @@ module rob (
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
 	logic [$clog2(`ROB_SZ)-1:0] head_idx;
-	logic [$clog2(`ROB_SZ):0] counter;
+	logic [$clog2(`ROB_SZ+1):0] counter;
+	logic [$clog2(`ROB_SZ+1):0] next_counter;
 	
 	//Handle rob->id
-	assign rob_id_packet.free = counter != `ROB_SZ;
-	assign rob_ir_packet.retire_en = rob[head_idx].completed;
+	assign rob_id_packet.free = counter < `ROB_SZ;
+	assign rob_ir_packet.retire_en = rob[head_idx].completed && counter > 0;
 	
 	//Handle rob->retire output
 	always_comb begin 

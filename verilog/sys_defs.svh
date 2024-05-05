@@ -24,8 +24,8 @@
 `define N 1
 
 // sizes
-`define ROB_SZ 32
-`define RS_SZ 5
+`define ROB_SZ 16
+`define RS_SZ 8
 `define PHYS_REG_SZ (32 + `ROB_SZ)
 
 // worry about these later
@@ -33,10 +33,9 @@
 `define LSQ_SZ xx
 
 // functional units (you should decide if you want more or fewer types of FUs)
-`define NUM_FU_ALU 1
-`define NUM_FU_MULT 1
-`define NUM_FU_LOAD 1
-`define NUM_FU_STORE 1
+`define NUM_FU_ALU 4
+`define NUM_FU_MULT 3
+`define NUM_FU_MEM 1
 
 // number of mult stages (2, 4, or 8)
 `define MULT_STAGES 4
@@ -72,7 +71,7 @@
 // Notably, you can no longer write data without first reading.ALU_OPA_SELECT opa_select,
 
 //TODO MAKE THIS WORK!
-//`define CACHE_MODE
+`define CACHE_MODE
 
 // you are not allowed to change this definition for your final processor
 // the project 3 processor has a massive boost in performance just from having no mem latency
