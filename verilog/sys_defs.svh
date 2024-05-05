@@ -450,6 +450,56 @@ typedef struct packed{
     logic [`XLEN-1:0] read_out_2;
 }PRF_IS_PACKET;
 
+//////////////////////////////////////////////
+// ---- LSQ Packets ---- //
+//////////////////////////////////////////////
+
+typedef struct packed{
+    logic enable; // from decoder packet
+    //logic addr; // INST.i.rs1
+}ID_LQ_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`ROB_SZ)-1:0] free_idx;
+    logic retire_en;
+}ROB_LQ_PACKET;
+
+typedef struct packed{
+    logic retire_en;
+}ROB_SQ_PACKET;
+
+typedef struct packed{
+    logic addr; // address information from decode? execute? 
+    logic enable;
+}EX_LQ_PACKET;
+
+typedef struct packed{
+    logic enable; // from decoder packet
+    logic addr; // INST.s.rs1
+}ID_SQ_PACKET;
+
+typedef struct packed{
+    logic enable;
+    logic value;
+    logic addr;
+}EX_SQ_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
+}LQ_RS_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
+}RS_LQ_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
+}SQ_RS_PACKET;
+
+typedef struct packed{
+    logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
+}RS_SQ_PACKET;
+
 
 /////////////////////////////
 // ---- Stage Packets ---- //
