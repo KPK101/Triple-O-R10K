@@ -21,6 +21,8 @@ module rs(
 	input ID_RS_PACKET id_rs_packet,
 	
 	input EX_RS_PACKET ex_rs_packet,
+
+	input IR_RS_PACKET ir_rs_packet,
 	
 	output RS_ID_PACKET rs_id_packet,
 	
@@ -30,18 +32,25 @@ module rs(
 	RS_ENTRY [`RS_SZ - 1:0] rs_table;
 
 	//Handle rs -> id logic
-	logic is_mult, is_mem;
+	logic is_mult, is_mem, is_b;
+	assign is_mem = id_rs_packet.decoder_packet.wr_mem || id_rs_packet.decoder_packet.rd_mem;
+
+	assign is_b = id_rs_packet.decoder_packet.cond_branch || id_rs_packet.decoder_packet.uncond_branch;
+
 	assign is_mult =        id_rs_packet.decoder_packet.alu_func == ALU_MUL ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULH ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHSU ||
 							id_rs_packet.decoder_packet.alu_func == ALU_MULHU;
+
+
 	
-	assign is_mem = id_rs_packet.decoder_packet.wr_mem || id_rs_packet.decoder_packet.rd_mem;
 
 
 	always_comb begin
 		if (is_mem) begin
 			rs_id_packet.free_idx = 0;
+		end else if (is_b) begin
+			rs_id_packet.free_idx = 1;
 		end else if (is_mult) begin
 			rs_id_packet.free_idx = `NUM_FU_MULT;
 			for(int i = `NUM_FU_MULT; i > 0; i = i - 1) begin
@@ -118,6 +127,10 @@ module rs(
 				rs_table[ex_rs_packet.remove_idx].issued   <= 0;
 			end
 		end
+			if (ir_rs_packet.remove_en) begin
+				rs_table[ir_rs_packet.remove_idx].busy <= 0;
+				rs_table[ir_rs_packet.remove_idx].issued   <= 0;
+			end
 	end
 
 endmodule

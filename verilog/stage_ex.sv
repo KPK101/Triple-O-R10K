@@ -33,7 +33,7 @@ module alu (
 endmodule
 
 
-module mult (
+module hardmult (
     input [`XLEN-1:0] opa,
     input [`XLEN-1:0] opb,
     ALU_FUNC          func,
@@ -136,13 +136,10 @@ module stage_ex(
 
     input [`XLEN-1:0] Dmem2load_data,
     
+    output EX_IF_PACKET ex_if_packet,
     output EX_IC_PACKET ex_ic_packet,
     output EX_RS_PACKET ex_rs_packet,
     output EX_PRF_PACKET ex_prf_packet,
-
-    output [`XLEN-1:0] opa_mux_out_dbg,
-    output [`XLEN-1:0] opb_mux_out_dbg,
-    output ALU_FUNC alu_func_dbg,
 
     output [1:0]       load2Dmem_command,
     output MEM_SIZE    load2Dmem_size,
@@ -157,15 +154,7 @@ module stage_ex(
     logic [`XLEN-1:0] opa_mux_out, opb_mux_out;
 
     
-    assign opa_mux_out_dbg = ex_prf_packet.write_tag;
-    assign opb_mux_out_dbg = ex_prf_packet.write_data;
-    assign alu_func_dbg = ex_prf_packet.write_en;
     
-   /* assign is_mult = is_ex_reg.decoder_packet.alu_func == ALU_MUL ||
-		     is_ex_reg.decoder_packet.alu_func == ALU_MULH ||
-		     is_ex_reg.decoder_packet.alu_func == ALU_MULHSU ||
-		     is_ex_reg.decoder_packet.alu_func == ALU_MULHU;*/
-
     assign is_mult = is_ex_reg.alu_func == ALU_MUL ||
 		     is_ex_reg.alu_func == ALU_MULH ||
 		     is_ex_reg.alu_func == ALU_MULHSU ||
@@ -182,7 +171,7 @@ module stage_ex(
     );
 
     // Instantiate mult
-    mult mult_0(
+    hardmult mult_0(
         .opa(opa_mux_out),
         .opb(opb_mux_out),
         .func(is_ex_reg.alu_func),
@@ -213,12 +202,11 @@ module stage_ex(
         .take(take_conditional)
     );
 
-    // Pass-throughs
+    assign ex_if_packet.cond_take = is_ex_reg.valid && !is_ex_reg.illegal && take_conditional;
+    assign ex_if_packet.bp_enable = is_ex_reg.valid && !is_ex_reg.illegal && is_ex_reg.cond_branch;
+
     assign ex_ic_packet.inst = is_ex_reg.inst;
-    assign ex_ic_packet.result = is_ex_reg.rd_mem ? load_result : 
-					             is_mult ? mult_result : alu_result;
     assign ex_ic_packet.NPC    = is_ex_reg.NPC;
-    assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && take_conditional);
     assign ex_ic_packet.rs2_value = is_ex_reg.rs2_value;
     assign ex_ic_packet.wr_mem = is_ex_reg.wr_mem;
     assign ex_ic_packet.dest_tag = is_ex_reg.dest_tag;
@@ -227,10 +215,15 @@ module stage_ex(
     assign ex_ic_packet.csr_op = is_ex_reg.csr_op;
     assign ex_ic_packet.rob_idx = is_ex_reg.rob_idx;
     assign ex_ic_packet.valid = is_ex_reg.valid;
-    
+    assign ex_ic_packet.result = (is_ex_reg.rd_mem)                                                  ? load_result   : 
+					             (is_mult)                                                           ? mult_result   : 
+                                 (is_ex_reg.cond_branch && is_ex_reg.pred_take && !take_conditional) ? is_ex_reg.NPC : alu_result;
+    assign ex_ic_packet.take_branch = is_ex_reg.uncond_branch || (is_ex_reg.cond_branch && (take_conditional ^ is_ex_reg.pred_take));
+    assign ex_ic_packet.rs_idx = is_ex_reg.rs_idx;
+
+    assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal && !ex_ic_packet.take_branch && !is_ex_reg.wr_mem;
     assign ex_rs_packet.remove_idx = is_ex_reg.rs_idx;
-    assign ex_rs_packet.remove_en = is_ex_reg.valid && !is_ex_reg.illegal;
-    
+
     assign ex_prf_packet.write_tag = is_ex_reg.dest_tag;
     assign ex_prf_packet.write_data = (ex_ic_packet.take_branch) ? is_ex_reg.NPC : ex_ic_packet.result;
     assign ex_prf_packet.write_en = is_ex_reg.valid && !is_ex_reg.illegal && (is_ex_reg.dest_tag.phys_reg != 0);

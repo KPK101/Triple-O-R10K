@@ -35,6 +35,7 @@ module stage_is(
     assign is_ex_packet.rs_idx = rs_is_packet.decoder_packet.rs_idx;
     assign is_ex_packet.rob_idx = rs_is_packet.decoder_packet.rob_idx;
     assign is_ex_packet.valid = rs_is_packet.decoder_packet.valid && rs_is_packet.issue_en;
+    assign is_ex_packet.pred_take = rs_is_packet.decoder_packet.pred_take;
 
 endmodule
     

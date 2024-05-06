@@ -10,7 +10,6 @@
 
 `include "verilog/sys_defs.svh"
 `include "verilog/ISA.svh"
-`include "verilog/decoder.sv"
 
 
 module stage_id (
@@ -28,6 +27,7 @@ module stage_id (
 );
 
     //Create decoder_packet for rs
+    logic has_dest;
     logic has_dest_reg;
     DECODER_PACKET decoder_packet;
     
@@ -36,6 +36,8 @@ module stage_id (
     assign decoder_packet.PC = if_id_reg.PC;
     assign decoder_packet.NPC = if_id_reg.NPC;
     assign decoder_packet.valid = if_id_reg.valid & ~decoder_packet.illegal;
+    assign decoder_packet.pred_take = if_id_reg.pred_take;
+
     decoder decoder_0 (
         // Inputs
         .inst  (if_id_reg.inst),
@@ -45,7 +47,7 @@ module stage_id (
         .opa_select    (decoder_packet.opa_select),
         .opb_select    (decoder_packet.opb_select),
         .alu_func      (decoder_packet.alu_func),
-        .has_dest      (has_dest_reg),
+        .has_dest      (has_dest),
         .rd_mem        (decoder_packet.rd_mem),
         .wr_mem        (decoder_packet.wr_mem),
         .cond_branch   (decoder_packet.cond_branch),
@@ -54,6 +56,8 @@ module stage_id (
         .halt          (decoder_packet.halt),
         .illegal       (decoder_packet.illegal)
     );
+    assign has_dest_reg = has_dest && if_id_reg.inst.r.rd != `ZERO_REG;
+
     //Helpers
     logic write;
     assign write = (if_id_reg.inst != `NOP) && rs_id_packet.free && rob_id_packet.free && fl_id_packet.free && decoder_packet.valid;
@@ -95,7 +99,7 @@ module stage_id (
     assign id_rob_packet.inst = if_id_reg.inst;
     assign id_rob_packet.halt = decoder_packet.halt;
     assign id_rob_packet.wr_mem = decoder_packet.wr_mem;
-    assign id_rob_packet.dest_reg_idx = id_mt_packet.write_idx;
+    assign id_rob_packet.has_dest_reg = has_dest_reg;
     assign id_rob_packet.NPC = if_id_reg.NPC;
     
     

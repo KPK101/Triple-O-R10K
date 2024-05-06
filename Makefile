@@ -98,7 +98,7 @@
 # there should be no need to change anything for project 3
 
 # this is a global clock period variable used in the tcl script and referenced in testbenches
-export CLOCK_PERIOD = 50.0
+export CLOCK_PERIOD = 30.0
 
 # the Verilog Compiler command and arguments
 VCS = SW_VCS=2020.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 -kdb -lca -nc \
@@ -163,34 +163,19 @@ GREP = grep -E --color=auto
 # - with dependencies: 'rob.simv', 'rob.cov', and 'synth/rob.vg'
 
 # TODO: add more modules here
-#TESTED_MODULES = mult rob
-TESTED_MODULES = stage_ir stage_ex stage_is prf stage_id rs map_table rs rob free_list  
+TESTED_MODULES = mult rob
+
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
 DEPS = $(1).simv $(1).cov synth/$(1).vg
 
-STAGE_IR_DEPS = verilog/stage_ic.sv verilog/stage_ir.sv verilog/stage_ex.sv verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
-$(call DEPS,stage_ir): $(STAGE_IR_DEPS)
-
-STAGE_EX_DEPS = verilog/stage_ex.sv verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
-$(call DEPS,stage_ex): $(STAGE_EX_DEPS)
-
-STAGE_IS_DEPS = verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
-$(call DEPS,stage_is): $(STAGE_IS_DEPS)
-
-STAGE_ID_DEPS = verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
-$(call DEPS,stage_id): $(STAGE_ID_DEPS)
-
 MULT_DEPS = verilog/mult_stage.sv
-$(call DEPS,mult_test): $(MULT_DEPS)
+$(call DEPS,mult): $(MULT_DEPS)
 
 # No dependencies for the rob (TODO: add any you create)
 ROB_DEPS =
 $(call DEPS,rob): $(ROB_DEPS)
-
-RS_DEPS = 
-$(call DEPS, rs): $(RS_DEPS)
 
 # This allows you to use the following make targets:
 # make <module>.pass   <- greps for "@@@ Passed" or "@@@ Incorrect" in the output
@@ -320,23 +305,26 @@ HEADERS = verilog/sys_defs.svh \
 
 TESTBENCH = test/pipeline_test.sv \
             test/pipeline_print.c \
-            test/mem.sv \
-			test/mult_test.sv \
+            test/mem.sv 
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
           verilog/map_table.sv \
-          verilog/rs.sv \
-          verilog/rob.sv \
           verilog/free_list.sv \
-		  verilog/prf.sv \
-		  verilog/stage_if.sv \
-		  verilog/stage_id.sv \
-		  verilog/stage_is.sv \
-		  verilog/stage_ex.sv \
-		  verilog/stage_ic.sv \
-		  verilog/stage_ir.sv \
-		  verilog/mult_stage.sv \
+          verilog/rob.sv \
+          verilog/rs.sv \
+          verilog/prf.sv \
+          verilog/decoder.sv \
+          verilog/bp.sv \
+          verilog/stage_if.sv \
+          verilog/stage_id.sv \
+          verilog/stage_is.sv \
+          verilog/stage_ex.sv \
+          verilog/stage_ic.sv \
+          verilog/stage_ir.sv \
+          verilog/icache.sv \
+          verilog/mult.sv \
+          verilog/mult_stage.sv 
 
 SYNTH_FILES = synth/pipeline.vg
 

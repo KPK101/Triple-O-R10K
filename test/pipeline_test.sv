@@ -92,35 +92,6 @@ module testbench;
     logic [31:0]      ir_inst_dbg;
     logic             ir_valid_dbg;
 
-    logic             fl_free_dbg;
-    logic             rob_free_dbg;
-    logic             rs_free_dbg;
-
-    TAG            id_tag1_dbg;
-    TAG            id_tag2_dbg;
-
-    
-    logic [`XLEN-1:0] opa_mux_out_dbg;
-    logic [`XLEN-1:0] opb_mux_out_dbg;
-    ALU_FUNC alu_func_dbg;
-
-    logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg;
-	logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg;
-
-    logic             ir_b_dbg;
-    logic [`XLEN-1:0] ir_baddr_dbg;
-    
-    logic             is_ex_cond_branch;
-    logic             is_ex_uncond_branch;
-    logic [`XLEN-1:0] is_ex_rs1;
-    logic [`XLEN-1:0] is_ex_rs2;
-    logic [`XLEN-1:0] is_ex_npc;
-
-    logic             ex_ic_take_branch;
-    logic [`XLEN-1:0] ex_ic_branch_target;
-    logic             ex_ic_npc;
-
-
     // Instantiate the Pipeline
     pipeline core (
         // Inputs
@@ -134,7 +105,9 @@ module testbench;
         .proc2mem_command (proc2mem_command),
         .proc2mem_addr    (proc2mem_addr),
         .proc2mem_data    (proc2mem_data),
+`ifndef CACHE_MODE
         .proc2mem_size    (proc2mem_size),
+`endif
 
         .pipeline_completed_insts (pipeline_completed_insts),
         .pipeline_error_status    (pipeline_error_status),
@@ -165,34 +138,7 @@ module testbench;
 
         .ir_NPC_dbg   (ir_NPC_dbg),
         .ir_inst_dbg  (ir_inst_dbg),
-        .ir_valid_dbg (ir_valid_dbg),
-
-        .fl_free_dbg   (fl_free_dbg),
-        .rob_free_dbg  (rob_free_dbg),
-        .rs_free_dbg   (rs_free_dbg),
-
-        .opa_mux_out_dbg (opa_mux_out_dbg),
-        .opb_mux_out_dbg (opb_mux_out_dbg),
-        .alu_func_dbg    (alu_func_dbg),
-
-        .id_tag1_dbg (id_tag1_dbg),
-        .id_tag2_dbg (id_tag2_dbg),
-        
-        .phys_reg_free_dbg(phys_reg_free_dbg),
-        .phys_reg_arch_free_dbg(phys_reg_arch_free_dbg),
-
-        .ir_b_dbg     (ir_b_dbg),
-        .ir_baddr_dbg (ir_baddr_dbg),
-
-        .is_ex_cond_branch     (is_ex_cond_branch),
-        .is_ex_uncond_branch (is_ex_uncond_branch),
-        .is_ex_rs1     (is_ex_rs1),
-        .is_ex_rs2 (is_ex_rs2),
-        .is_ex_npc     (is_ex_npc),
-
-        .ex_ic_take_branch (ex_ic_take_branch),
-        .ex_ic_branch_target     (ex_ic_branch_target),
-        .ex_ic_npc (ex_ic_npc)
+        .ir_valid_dbg (ir_valid_dbg)
     );
 
 
@@ -341,8 +287,6 @@ module testbench;
             print_stage("|", ex_inst_dbg, ex_NPC_dbg [31:0], {31'b0,ex_valid_dbg});
             print_stage("|", ic_inst_dbg, ic_NPC_dbg [31:0], {31'b0,ic_valid_dbg});
             print_stage("|", ir_inst_dbg, ir_NPC_dbg [31:0], {31'b0,ir_valid_dbg});
-
-            print_branch(ir_b_dbg,ir_baddr_dbg);
             
             print_reg(32'b0, pipeline_commit_wr_data[31:0],
                 {27'b0,pipeline_commit_wr_idx}, {31'b0,pipeline_commit_wr_en});
@@ -350,14 +294,7 @@ module testbench;
             print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
                 32'b0, proc2mem_addr[31:0],
                 proc2mem_data[63:32], proc2mem_data[31:0]);
-
-            print_availability(fl_free_dbg,rs_free_dbg,rob_free_dbg);
-            print_free_list(phys_reg_free_dbg[63:32],phys_reg_free_dbg[31:0],phys_reg_arch_free_dbg[63:32],phys_reg_arch_free_dbg[31:0]);
-            hexdump(opa_mux_out_dbg[31:0],opb_mux_out_dbg[31:0]);
-            hexdump(0,alu_func_dbg);
-            hexdump(id_tag1_dbg,id_tag2_dbg);
-
-            // print register write information to the writeback output file
+            
             if (pipeline_completed_insts > 0) begin
                 if(pipeline_commit_wr_en)
                     $fdisplay(wb_fileno, "PC=%x, REG[%d]=%x",

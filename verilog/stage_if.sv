@@ -17,12 +17,41 @@ module stage_if (
     input             take_branch,    // taken-branch signal
     input [`XLEN-1:0] branch_target,  // target pc: use if take_branch is TRUE
     input [63:0]      Imem2proc_data, // data coming back from Instruction memory
+    input EX_IF_PACKET ex_if_packet,
 
     output IF_ID_PACKET      if_id_packet,
     output logic [`XLEN-1:0] proc2Imem_addr // address sent to Instruction memory
 );
 
     logic [`XLEN-1:0] PC_reg; // PC we are currently fetching
+
+    logic is_branch;
+    logic [`XLEN-1:0] pred_target;
+
+    assign pred_target = `RV32_signext_Bimm(if_id_packet.inst) + if_id_packet.PC;
+
+    always_comb begin
+        casez (if_id_packet.inst)
+            `RV32_BEQ, `RV32_BNE, `RV32_BLT, `RV32_BGE,
+            `RV32_BLTU, `RV32_BGEU: begin
+                is_branch = 1;
+            end
+            default: begin
+                is_branch = 0;
+            end
+        endcase
+    end
+
+    bp bp_0 (
+        .clock(clock),
+        .reset(reset),
+        .take(ex_if_packet.cond_take),
+        .enable(ex_if_packet.bp_enable),
+
+        .pred_take(if_id_packet.pred_take)
+    );
+
+
 
     // synopsys sync_set_reset "reset"
     always_ff @(posedge clock) begin
@@ -31,7 +60,11 @@ module stage_if (
         end else if (take_branch) begin
             PC_reg <= branch_target; // update to a taken branch (does not depend on valid bit)
         end else if (if_valid) begin
-            PC_reg <= PC_reg + 4;    // or transition to next PC if valid
+            if (if_id_packet.pred_take && is_branch) begin
+                PC_reg <= pred_target;    // or transition to next PC if valid
+            end else begin
+                PC_reg <= PC_reg + 4;    // or transition to next PC if valid
+            end
         end
     end
 

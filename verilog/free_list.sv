@@ -8,18 +8,12 @@ module free_list (
 	
 	input IR_FL_PACKET ir_fl_packet,
 	
-	output FL_ID_PACKET fl_id_packet,
-
-	output logic [`PHYS_REG_SZ-1:0] phys_reg_free_dbg,
-	output logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free_dbg
+	output FL_ID_PACKET fl_id_packet
 );
 
 	//Array that keeps track if reg is free
 	logic [`PHYS_REG_SZ-1:0] phys_reg_free;
 	logic [`PHYS_REG_SZ-1:0] phys_reg_arch_free;
-
-	assign phys_reg_free_dbg = phys_reg_free;
-	assign phys_reg_arch_free_dbg = phys_reg_arch_free;
 	
 	always_comb begin
 		//Default output

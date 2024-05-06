@@ -34,7 +34,8 @@
 
 // functional units (you should decide if you want more or fewer types of FUs)
 `define NUM_FU_ALU 4
-`define NUM_FU_MULT 3
+`define NUM_FU_MULT 2
+`define NUM_FU_B 1
 `define NUM_FU_MEM 1
 
 // number of mult stages (2, 4, or 8)
@@ -71,7 +72,7 @@
 // Notably, you can no longer write data without first reading.ALU_OPA_SELECT opa_select,
 
 //TODO MAKE THIS WORK!
-`define CACHE_MODE
+//`define CACHE_MODE
 
 // you are not allowed to change this definition for your final processor
 // the project 3 processor has a massive boost in performance just from having no mem latency
@@ -299,6 +300,7 @@ typedef struct packed{
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
     
     logic       valid;
+    logic       pred_take;
 } DECODER_PACKET;
 
 /////////////////////////////////
@@ -372,22 +374,20 @@ typedef struct packed{
     TAG t_old_in;
     
 	INST  inst;
+
 	logic halt;
 	logic wr_mem;
-	logic [4:0] dest_reg_idx;
-	logic [`XLEN-1:0] NPC;
-	
+    logic has_dest_reg;
     logic write_en;
+
+	logic [`XLEN-1:0] NPC;
 }ID_ROB_PACKET;
 
 typedef struct packed{
     logic complete_en;
     logic [$clog2(`ROB_SZ)-1:0] complete_idx;
     
-	logic [`XLEN-1:0] result;
-	logic [`XLEN-1:0] rs2_value;
 	logic take_branch;
-	
 }IC_ROB_PACKET;
 
 typedef struct packed{
@@ -401,14 +401,13 @@ typedef struct packed{
     TAG retire_t_old;
     
 	INST inst;
+
     logic halt;
 	logic wr_mem;
-	logic [4:0] dest_reg_idx;
-	logic [`XLEN-1:0] NPC;
-	
+    logic has_dest_reg;
 	logic take_branch;
-	logic [`XLEN-1:0] result;
-	logic [`XLEN-1:0] rs2_value;
+
+	logic [`XLEN-1:0] NPC;
 	
 }ROB_IR_PACKET;
 
@@ -469,6 +468,7 @@ typedef struct packed {
     logic [`XLEN-1:0] PC;
     logic [`XLEN-1:0] NPC; // PC + 4
     logic             valid;
+    logic             pred_take;
 } IF_ID_PACKET;
 
 typedef struct packed {
@@ -492,6 +492,7 @@ typedef struct packed {
     logic       halt;          // Is this a halt?
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we only used this as a cheap way to get return code)
+    logic       pred_take;
     
     logic [$clog2(`RS_SZ)-1:0] rs_idx;
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
@@ -499,6 +500,10 @@ typedef struct packed {
     logic       valid;
 } IS_EX_PACKET;
 
+typedef struct packed {
+    logic cond_take;
+    logic bp_enable;
+} EX_IF_PACKET;
 
 typedef struct packed {
     INST              inst;
@@ -515,12 +520,30 @@ typedef struct packed {
     logic             csr_op;
     
     
+    logic [$clog2(`ROB_SZ)-1:0] rs_idx;
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
     
     logic             valid;
 } EX_IC_PACKET;
- 
 
+typedef struct packed {
+    logic             take_branch;
+    logic [`XLEN-1:0] branch_result; // Is this a taken branch?
+    
+    logic             wr_mem;
+    logic [`XLEN-1:0] wr_addr;
+    logic [`XLEN-1:0] wr_data;
+
+    logic [$clog2(`RS_SZ)-1:0] rs_idx;
+
+    logic             valid;
+} IC_IR_PACKET;
+
+
+typedef struct packed {
+	logic [$clog2(`RS_SZ)-1:0] remove_idx;
+	logic remove_en;
+}IR_RS_PACKET;
 
 
 typedef struct packed {

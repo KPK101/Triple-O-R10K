@@ -8,14 +8,11 @@ typedef struct packed {
 	INST  inst;
 	logic halt;
 	logic wr_mem;
-	logic [4:0] dest_reg_idx;
+	logic has_dest_reg;
 	logic [`XLEN-1:0] NPC;
 
 	//Values from IC stored for retiring
 	logic take_branch;
-	logic [`XLEN-1:0] result;
-	logic [`XLEN-1:0] rs2_value;
-	
 } ROB_ENTRY;
 
 module rob (
@@ -54,11 +51,9 @@ module rob (
 			rob_ir_packet.inst = rob[head_idx].inst;
 			rob_ir_packet.halt = rob[head_idx].halt;
 			rob_ir_packet.wr_mem = rob[head_idx].wr_mem;
-			rob_ir_packet.dest_reg_idx = rob[head_idx].dest_reg_idx;
+			rob_ir_packet.has_dest_reg = rob[head_idx].has_dest_reg;
 			rob_ir_packet.NPC = rob[head_idx].NPC;
 		
-			rob_ir_packet.result = rob[head_idx].result;
-			rob_ir_packet.rs2_value = rob[head_idx].rs2_value;
 			rob_ir_packet.take_branch = rob[head_idx].take_branch;
 		end else begin
 			rob_ir_packet.retire_t = 0;
@@ -67,11 +62,9 @@ module rob (
 			rob_ir_packet.inst = `NOP;
 			rob_ir_packet.halt = 0;
 			rob_ir_packet.wr_mem = 0;
-			rob_ir_packet.dest_reg_idx = 0;
+			rob_ir_packet.has_dest_reg = 0;
 			rob_ir_packet.NPC = 0;
-		
-			rob_ir_packet.result = 0;
-			rob_ir_packet.rs2_value = 0;
+
 			rob_ir_packet.take_branch = 0;
 		end
 	end
@@ -99,7 +92,7 @@ module rob (
 				rob[rob_id_packet.free_idx].inst <= id_rob_packet.inst;
 				rob[rob_id_packet.free_idx].halt <= id_rob_packet.halt;
 				rob[rob_id_packet.free_idx].wr_mem <= id_rob_packet.wr_mem;
-				rob[rob_id_packet.free_idx].dest_reg_idx <= id_rob_packet.dest_reg_idx;
+				rob[rob_id_packet.free_idx].has_dest_reg <= id_rob_packet.has_dest_reg;
 				rob[rob_id_packet.free_idx].NPC <= id_rob_packet.NPC;
 				
 				rob_id_packet.free_idx <= rob_id_packet.free_idx + 1;
@@ -107,10 +100,7 @@ module rob (
 			//Handle ic->rob
 			if (ic_rob_packet.complete_en) begin
 				rob[ic_rob_packet.complete_idx].completed <= 1;
-				rob[ic_rob_packet.complete_idx].result <= ic_rob_packet.result;
-				rob[ic_rob_packet.complete_idx].rs2_value <= ic_rob_packet.rs2_value;
 				rob[ic_rob_packet.complete_idx].take_branch <= ic_rob_packet.take_branch;
-				
 			end
 			
 			//Handle rob->retire update
