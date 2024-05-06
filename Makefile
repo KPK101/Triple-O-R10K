@@ -165,12 +165,18 @@ GREP = grep -E --color=auto
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
 
-TESTED_MODULES = stage_ir stage_ex stage_is prf stage_id rs map_table  rob free_list dcache 
+TESTED_MODULES = stage_ir stage_ex stage_is prf stage_id rs map_table  rob free_list dcache icache
 
 # TODO: add verilog module dependencies here:
 # (do not include header files)
 # Helper function:
 DEPS = $(1).simv $(1).cov synth/$(1).vg
+
+ICACHE_DEPS = verilog/icache.sv 
+$(call DEPS,icache): $(ICACHE_DEPS)
+
+DCACHE_DEPS = verilog/dcache.sv 
+$(call DEPS,dcache): $(DCACHE_DEPS)
 
 STAGE_IR_DEPS = verilog/stage_ic.sv verilog/stage_ir.sv verilog/stage_ex.sv verilog/stage_is.sv verilog/prf.sv verilog/stage_id.sv verilog/map_table.sv verilog/rs.sv verilog/rob.sv verilog/free_list.sv
 $(call DEPS,stage_ir): $(STAGE_IR_DEPS)

@@ -1,39 +1,46 @@
 `timescale 1ns / 1ps
 `include "verilog/sys_defs.svh"
 `include "verilog/ISA.svh"
+`define CACHE_LINES 32
+`define CACHE_LINE_BITS $clog2(`CACHE_LINES)
 
-module dcache_tb;
+module icache_tb;
 
 // Define testbench signals based on the map_table module's interface
 logic clock;
 logic reset;
 //input
-MEMOP_DCACHE_PACKET memop_dcache_packet;
+logic [`XLEN-1:0] proc2Icache_addr;
 
 logic [3:0]  Imem2proc_response; // Should be zero unless there is a response
 logic [63:0] Imem2proc_data;
 logic [3:0]  Imem2proc_tag;
 //output
 logic [1:0]       proc2Imem_command;
-logic [63:0]      proc2Imem_data;
 logic [`XLEN-1:0] proc2Imem_addr;
 
-DCACHE_MEMOP_PACKET dcache_memop_packet;
-logic got_mem_data;
+logic [63:0] Icache_data_out;
+logic Icache_valid_out, got_mem_data, unanswered_miss;
+
+logic [12-`CACHE_LINE_BITS:0] current_tag;
+logic [`CACHE_LINE_BITS - 1:0] current_index, last_index; 
 // Instantiate the map_table
-dcache dut (
+icache dut (
     .clock(clock),
     .reset(reset),
-    .memop_dcache_packet(memop_dcache_packet),
+    .proc2Icache_addr(proc2Icache_addr),
     .Imem2proc_data(Imem2proc_data),
     .Imem2proc_response(Imem2proc_response),
     .Imem2proc_tag(Imem2proc_tag),
 
     .proc2Imem_addr(proc2Imem_addr),
     .proc2Imem_command(proc2Imem_command),
-    .proc2Imem_data(proc2Imem_data),
-    .dcache_memop_packet(dcache_memop_packet),
-    .got_mem_data(got_mem_data)
+    .got_mem_data(got_mem_data),
+    .unanswered_miss(unanswered_miss),
+    .Icache_data_out(Icache_data_out),
+    .current_index(current_index),
+    .last_index(last_index),
+    .Icache_valid_out(Icache_valid_out)
 );
 
 // Clock generation
@@ -58,60 +65,59 @@ $display("STARTING TESTBENCH!");
 $monitor(
 "@@@\tTime:%4.0f clock:%b reset:%b \n\
 \tINPUT --------------------------------------------------------\n\
-\tdcache_cmd_in: %b dcache_addr_in:%d dcache_data_in:%d \n\
+\proc2Icache_addr: %b  \n\
 \tImem2proc_resp:%b Imem2proc_data:%d Imem2proc_tag:%b \n\
 \tOUTPUT -------------------------------------------------------\n\
-\tproc2Imem_cmd:%b proc2Imem_addr:%d proc2Imem_data:%d got_mem_data:%d \n\
-\tdcache_data_out:%d dcache_valid_out:%b \n\
+\tproc2Imem_cmd:%b proc2Imem_addr:%d got_mem_data:%d unanswered_miss:%d \n\
+\tcurrent_idx:%b last_idx:%b \n\
+\ticache_data_out:%d icache_valid_out:%b \n\
 ",      
                   $time, clock, reset,
-                  memop_dcache_packet.proc2Dcache_command, memop_dcache_packet.proc2Dcache_addr, memop_dcache_packet.proc2Dcache_data,
-		Imem2proc_response, Imem2proc_data, Imem2proc_tag,
-                  proc2Imem_command, proc2Imem_addr, proc2Imem_data, got_mem_data,
-                  dcache_memop_packet.Dcache_data_out, dcache_memop_packet.Dcache_valid_out
+                  proc2Icache_addr,
+		          Imem2proc_response, Imem2proc_data, Imem2proc_tag,
+                  proc2Imem_command, proc2Imem_addr, got_mem_data, unanswered_miss,
+                  current_index, last_index,
+                  Icache_data_out, Icache_valid_out
                   );
        
-    @(posedge clock)
+    #10
     // 2'h0 : none | 2'h1 : load | 2'h2 : store
     // Test read functionality of tags
-    @(posedge clock)
+    #10
     reset = 0;
-    memop_dcache_packet.proc2Dcache_command = BUS_LOAD;
                                             //                     |  TAG   | IDX |
-    memop_dcache_packet.proc2Dcache_addr = 32'b0000_0000_0000_0000_0000_0000_0000_1000; // change
+    proc2Icache_addr = 32'b0000_0000_0000_0000_0000_0000_0000_1000; // change
     // memop_dcache_packet.proc2Dcache_data = 64'd4;
-    
-    @(negedge clock)
+    #10
     Imem2proc_response = 4'b10;
 
-    @(negedge clock)//30
+    #10//30
     Imem2proc_data = 64'd88;
     Imem2proc_tag = 4'b10;
 
-    @(posedge clock)
 
-    @(posedge clock)
-    memop_dcache_packet.proc2Dcache_command = BUS_LOAD;
+    #10
                                             //                     |  TAG   | IDX |
-    memop_dcache_packet.proc2Dcache_addr = 32'b0000_0000_0000_0000_0000_0000_0001_1000; // change
+    proc2Icache_addr = 32'b0000_0000_0000_0000_0000_0000_0001_1000; // change
+    Imem2proc_response = 4'b0;
     // memop_dcache_packet.proc2Dcache_data = 64'd4;
-    @(negedge clock)
+    #10
     Imem2proc_response = 4'b11;
 
-
-   @(negedge clock)
+    #10
     Imem2proc_data = 64'd128;
     Imem2proc_tag = 4'b11;
 
-    #10;
+    #10
+                                            //                     |  TAG   | IDX |
+    proc2Icache_addr = 32'b0000_0000_0000_0000_0000_0000_0000_1000; // change
+
     // memop_dcache_packet.proc2Dcache_command = 2'h2;
     // memop_dcache_packet.proc2Dcache_addr = 32'b1; // change
     // memop_dcache_packet.proc2Dcache_data = 64'd4;
     // Imem2proc_response = 4'd10;
     // Imem2proc_data = 64'd88;
-    // Imem2proc_tag = 4'd3;
-    #10;
-    
+    // Imem2proc_tag = 4'd3;    
 	// Continue simulation for a while to observe behavior
     #10;
     $display("\nENDING TESTBENCH: SUCCESS!");

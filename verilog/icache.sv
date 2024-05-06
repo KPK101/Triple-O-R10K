@@ -57,12 +57,17 @@ module icache (
     input [`XLEN-1:0] proc2Icache_addr,
 
     // To memory
-    output logic [1:0]       proc2Imem_command,
-    output logic [`XLEN-1:0] proc2Imem_addr,
+    output logic [1:0]       icache2Imem_command,
+    output logic [`XLEN-1:0] icache2Imem_addr,
 
     // To fetch stage
     output logic [63:0] Icache_data_out, // Data is mem[proc2Icache_addr]
     output logic        Icache_valid_out // When valid is high
+    
+    //debugging
+    output got_mem_data,
+    output unanswered_miss,
+    output current_index,last_index,
 );
 
     // ---- Cache data ---- //
@@ -101,8 +106,8 @@ module icache (
                                         : miss_outstanding && (Imem2proc_response == 0);
 
     // Keep sending memory requests until we receive a response tag or change addresses
-    assign proc2Imem_command = (miss_outstanding && !changed_addr) ? BUS_LOAD : BUS_NONE;
-    assign proc2Imem_addr    = {proc2Icache_addr[31:3],3'b0};
+    assign icache2Imem_command = (miss_outstanding && !changed_addr) ? BUS_LOAD : BUS_NONE;
+    assign icache2Imem_addr    = {proc2Icache_addr[31:3],3'b0};
 
     // ---- Cache state registers ---- //
 

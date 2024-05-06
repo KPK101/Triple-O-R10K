@@ -444,33 +444,102 @@ module pipeline (
     //         proc2mem_data = {32'b0, proc2Dmem_data};
     //     end
     
+    // always_comb begin
+    //     next_if_valid = id_stall;
+    //     is_stall = 0;
+    //     if (store2Dmem_command != BUS_NONE) begin
+    //         proc2mem_command    = store2Dmem_command;
+    //         proc2mem_addr       = store2Dmem_addr;
+    //         proc2mem_size       = store2Dmem_size;
+    //         proc2mem_data       = {32'b0, store2Dmem_data};
+
+    //         if (load2Dmem_command != BUS_NONE) begin
+    //             is_stall        = 1;
+    //         end
+
+    //         next_if_valid       = 0;
+    //     end else if (load2Dmem_command != BUS_NONE) begin
+    //         proc2mem_command    = load2Dmem_command;
+    //         proc2mem_addr       = load2Dmem_addr;
+    //         proc2mem_size       = load2Dmem_size;
+    //         proc2mem_data       = {32'b0, load2Dmem_data};
+
+    //         next_if_valid       = 0;
+    //     end else begin
+    //         proc2mem_command = BUS_LOAD;
+    //         proc2mem_addr    = proc2Imem_addr;
+    //         proc2mem_size    = DOUBLE;
+    //     end
+        
+    // end
+
+    logic [63:0]      Icache_data_out;
+    logic             Icache_valid_out;
+    logic [`XLEN-1:0] proc2Icache_addr;
+    logic [1:0]       icache2Imem_command;
+    logic [`XLEN-1:0] icache2Imem_addr;
+    icache icache_0(
+        .clock(clock),
+        .reset(reset),
+        .proc2Icache_addr(proc2Icache_addr),
+        .Icache_data_out(Icache_data_out),
+        .Icache_valid_out(Icache_valid_out),
+        .Imem2proc_data(mem2proc_data),
+        .Imem2proc_response(mem2proc_response),
+        .Imem2proc_tag(mem2proc_tag),
+        .icache2Imem_addr(icache2Imem_addr),
+        .icache2Imem_command(icache2Imem_command)
+    );
+    
+    MEMOP_DCACHE_PACKET memop_dcache_packet;
+    DCACHE_MEMOP_PACKET dcache_memop_packet;
+    logic [1:0]         dcache2Imem_command;
+    logic [`XLEN-1:0]   dcache2Imem_addr;
+    logic [63:0]        dcache2Imem_data;
+    dcache dcache_0(
+        .clock(clock),
+        .reset(reset),
+        .memop_dcache_packet(memop_dcache_packet),
+        .dcache_memop_packet(dcache_memop_packet),
+        .Imem2proc_data(mem2proc_data),
+        .Imem2proc_response(mem2proc_response),
+        .Imem2proc_tag(mem2proc_tag),
+        .dcache2Imem_addr(dcache2Imem_addr),
+        .dcache2Imem_command(dcache2Imem_command),
+        .dcache2Imem_data(dcache2Imem_data)
+    );
+
     always_comb begin
         next_if_valid = id_stall;
         is_stall = 0;
-        if (store2Dmem_command != BUS_NONE) begin
-            proc2mem_command    = store2Dmem_command;
-            proc2mem_addr       = store2Dmem_addr;
-            proc2mem_size       = store2Dmem_size;
-            proc2mem_data       = {32'b0, store2Dmem_data};
+        if (store2Dmem_command != BUS_NONE && !dcache_memop_packet.Dcache_valid_out) begin
+            memop_dcache_packet.proc2Dcache_command    = store2Dmem_command;
+            memop_dcache_packet.proc2Dcache_addr       = store2Dmem_addr;
+            memop_dcache_packet.proc2mem_data       = {32'b0, store2Dmem_data};
+
+            proc2mem_addr    = dcache2Imem_addr;
+            proc2mem_command = dcache2Imem_command;
+            proc2mem_data    = dcache2Imem_data;
 
             if (load2Dmem_command != BUS_NONE) begin
                 is_stall        = 1;
             end
-
             next_if_valid       = 0;
-        end else if (load2Dmem_command != BUS_NONE) begin
-            proc2mem_command    = load2Dmem_command;
-            proc2mem_addr       = load2Dmem_addr;
-            proc2mem_size       = load2Dmem_size;
-            proc2mem_data       = {32'b0, load2Dmem_data};
 
+        end else if (load2Dmem_command != BUS_NONE&& !dcache_memop_packet.Dcache_valid_out) begin
+            memop_dcache_packet.proc2mem_command    = load2Dmem_command;
+            memop_dcache_packet.proc2mem_addr       = load2Dmem_addr;
+            // proc2mem_data       = {32'b0, load2Dmem_data};
+            proc2mem_addr    = dcache2Imem_addr;
+            proc2mem_command = dcache2Imem_command;
+            proc2mem_data    = dcache2Imem_data;
             next_if_valid       = 0;
+            
         end else begin
-            proc2mem_command = BUS_LOAD;
-            proc2mem_addr    = proc2Imem_addr;
-            proc2mem_size    = DOUBLE;
+            proc2Icache_addr = proc2Imem_addr;
+            proc2mem_addr    = icache2Imem_addr;
+            proc2mem_command = icache2Imem_command;
         end
-        
     end
 
     //////////////////////////////////////////////////

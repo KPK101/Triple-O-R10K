@@ -34,14 +34,14 @@ module dcache (
     input MEMOP_DCACHE_PACKET memop_dcache_packet,
 
     // To memory
-    output logic [1:0]       proc2Imem_command,
-    output logic [63:0]      proc2Imem_data,
-    output logic [`XLEN-1:0] proc2Imem_addr,
+    output logic [1:0]       dcache2Imem_command,
+    output logic [63:0]      dcache2Imem_data,
+    output logic [`XLEN-1:0] dcache2Imem_addr,
 
     // To execute stage for load
     output DCACHE_MEMOP_PACKET dcache_memop_packet,
-
-    output stall 
+    output got_mem_data
+   // output current_index, current_tag,
 );
 
     // ---- Cache data ---- //
@@ -58,14 +58,14 @@ module dcache (
     assign {current_tag, current_index} = memop_dcache_packet.proc2Dcache_addr[15:3];
 
     assign dcache_memop_packet.Dcache_data_out = dcache_data[current_index].data;
-
+    assign dcache_memop_packet.Dcache_valid_out = dcache_data[current_index].valid && (dcache_data[current_index].tags == current_tag);
     // ---- Main cache logic ---- //
 
     logic [3:0] current_mem_tag; // The current memory tag we might be waiting on
     logic       miss_outstanding; // Whether a miss has received its response tag to wait on
 
     //wire got_mem_data    = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
-    wire got_mem_data = memop_dcache_packet.proc2Dcache_command == BUS_STORE && dcache_data[current_index].valid && dcache_data[current_index].tags == current_tag;
+    wire got_mem_data    = (current_mem_tag == Imem2proc_tag) && (current_mem_tag != 0);
 
     wire changed_addr    = (current_index != last_index) || (current_tag != last_tag);
 
@@ -74,29 +74,14 @@ module dcache (
     wire unanswered_miss = changed_addr ? !dcache_memop_packet.Dcache_valid_out
                                         : miss_outstanding && (Imem2proc_response == 0);
    
-   
+    
     //tell memory if it is BUS_LOAD or BUS_STORE
-    assign proc2Imem_command = (miss_outstanding && !changed_addr) ? memop_dcache_packet.proc2Dcache_command : BUS_NONE;
+    assign dcache2Imem_command = (miss_outstanding && !changed_addr) ? memop_dcache_packet.proc2Dcache_command : BUS_NONE;
 
-    assign proc2Imem_addr    = {memop_dcache_packet.proc2Dcache_addr[31:3],3'b0};
+    assign dcache2Imem_addr    = {memop_dcache_packet.proc2Dcache_addr[31:3],3'b0};
     assign proc2Dcache_data  = memop_dcache_packet.proc2Dcache_data;
     // ---- Cache state registers ---- //
-    
-    //setting valid bit depending on whether it is load or store command 
-    always_comb begin
-        //loading or storing
-        //dcache_data_out = dcache_data[current_index].data; being done at line 60
-        dcache_memop_packet.Dcache_valid_out = dcache_data[current_index].valid && (dcache_data[current_index].tags == current_tag);
-        //if cache hit and storing
-        /*if(memop_dcache_packet.proc2Dcache_command == BUS_STORE && dcache_data[current_index].valid && dcache_data[current_index].tags == current_tag) begin
-                dcache_data[current_index].data  <= memop_dcache_packet.proc2Dcache_data;
-                dcache_data[current_index].tags  <= current_tag;
-                dcache_data[current_index].valid <= 1'b1;*/
-        if(memop_dcache_packet.proc2Dcache_command == BUS_NONE) begin
-            dcache_memop_packet.Dcache_valid_out = 1'b0;
-        end
 
-    end
 
     always_ff @(posedge clock) begin
         if (reset) begin
