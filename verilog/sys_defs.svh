@@ -72,7 +72,7 @@
 // Notably, you can no longer write data without first reading.ALU_OPA_SELECT opa_select,
 
 //TODO MAKE THIS WORK!
-//`define CACHE_MODE
+`define CACHE_MODE
 
 // you are not allowed to change this definition for your final processor
 // the project 3 processor has a massive boost in performance just from having no mem latency
@@ -554,5 +554,20 @@ typedef struct packed {
     logic             wr_en;
     logic [`XLEN-1:0] NPC;
 }IR_PIPELINE_PACKET;
+
+/////////////////////////////
+// ---- D$ Packets ---- //
+/////////////////////////////
+typedef struct packed {
+    logic [`XLEN-1:0] proc2Dcache_addr;
+    logic [1:0]       proc2Dcache_command;
+    logic [63:0]      proc2Dcache_data;
+    logic enable;
+} MEMOP_DCACHE_PACKET;
+
+typedef struct packed {
+    logic [63:0] Dcache_data_out; 
+    logic        Dcache_valid_out;
+} DCACHE_MEMOP_PACKET;
 
 `endif // __SYS_DEFS_SVH__
