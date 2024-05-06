@@ -342,8 +342,8 @@ typedef struct packed{
 typedef struct packed{
 	DECODER_PACKET decoder_packet;
 	logic write_en;
-    logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
-    logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
+    //logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
+    //logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
 }ID_RS_PACKET;
 
 //EX -> RS
@@ -491,26 +491,26 @@ typedef struct packed{
 //     logic enable;
 // }LQ_RS_PACKET;
 
-typedef struct packed{
-    logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
-}LQ_ID_PACKET;
+//typedef struct packed{
+    //logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
+//}LQ_ID_PACKET;
 
-typedef struct packed{
-    logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
-}RS_LQ_PACKET;
+//typedef struct packed{
+    //logic [$clog2(`LSQ_SZ)-1:0]lq_pos;
+//}RS_LQ_PACKET;
 
 // typedef struct packed{
 //     logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
 //     logic enable;
 // }SQ_RS_PACKET;
 
-typedef struct packed{
-    logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
-}SQ_ID_PACKET;
+//typedef struct packed{
+    //logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
+//}SQ_ID_PACKET;
 
-typedef struct packed{
-    logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
-}RS_SQ_PACKET;
+//typedef struct packed{
+    //logic [$clog2(`LSQ_SZ)-1:0]sq_pos;
+//}RS_SQ_PACKET;
 
 
 /////////////////////////////
@@ -592,15 +592,15 @@ typedef struct packed {
 // ---- D$ Packets ---- //
 /////////////////////////////
 typedef struct packed {
-    logic [`XLEN-1:0] proc2Dcache_addr,
-    logic [1:0]       proc2Dcache_command,
-    logic [63:0]      proc2Dcache_data,
-    logic enable
-}MEMOP_DCACHE_PACKET;
+    logic [`XLEN-1:0] proc2Dcache_addr;
+    logic [1:0]       proc2Dcache_command;
+    logic [63:0]      proc2Dcache_data;
+    logic enable;
+} MEMOP_DCACHE_PACKET;
 
 typedef struct packed {
-    logic [63:0] Dcache_data_out, 
-    logic        Dcache_valid_out
-}DCACHE_MEMOP_PACKET;
+    logic [63:0] Dcache_data_out; 
+    logic        Dcache_valid_out;
+} DCACHE_MEMOP_PACKET;
 
 `endif // __SYS_DEFS_SVH__

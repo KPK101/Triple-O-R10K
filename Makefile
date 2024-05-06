@@ -165,7 +165,7 @@ GREP = grep -E --color=auto
 # TODO: add more modules here
 #TESTED_MODULES = mult rob
 
-TESTED_MODULES = stage_ir stage_ex stage_is prf stage_id rs map_table rs rob free_list  
+TESTED_MODULES = stage_ir stage_ex stage_is prf stage_id rs map_table  rob free_list dcache 
 
 # TODO: add verilog module dependencies here:
 # (do not include header files)
@@ -326,10 +326,7 @@ TESTBENCH = test/pipeline_test.sv \
 #            test/mem.sv \
 #	    test/rs_test.sv \
 #	    test/rob_test.sv
-
-
-
-            test/mem.sv
+#            test/mem.sv
 
 # you could simplify this line with $(wildcard verilog/*.sv) - but the manual way is more explicit
 SOURCES = verilog/pipeline.sv \
