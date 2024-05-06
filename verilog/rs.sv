@@ -53,14 +53,14 @@ module rs(
 			rs_id_packet.free_idx = 1;
 		end else if (is_mult) begin
 			rs_id_packet.free_idx = `NUM_FU_MULT;
-			for(int i = `NUM_FU_MULT; i > 0; i = i - 1) begin
+			for(int i = `NUM_FU_MULT + 1; i > 1; i = i - 1) begin
 				if (!rs_table[i].busy) begin
 					rs_id_packet.free_idx = i;
 				end
 			end
 		end else begin
 			rs_id_packet.free_idx = `RS_SZ - 1;
-			for(int i = `RS_SZ - 1; i > `RS_SZ - 1 - `NUM_FU_MULT; i = i - 1) begin
+			for(int i = `RS_SZ - 1; i > `RS_SZ - `NUM_FU_MULT - 2; i = i - 1) begin
 				if (!rs_table[i].busy) begin
 					rs_id_packet.free_idx = i;
 				end
