@@ -39,7 +39,7 @@ module dcache (
     output logic [`XLEN-1:0] proc2Imem_addr,
 
     // To execute stage for load
-    output DCACHE_MEMOP_PACKET dcache_memop_packet
+    output DCACHE_MEMOP_PACKET dcache_memop_packet,
 
     output stall; 
 );
@@ -81,21 +81,18 @@ module dcache (
     assign proc2Imem_addr    = {memop_dcache_packet.proc2Dcache_addr[31:3],3'b0};
     assign proc2Dcache_data  = memop_dcache_packet.proc2Dcache_data;
     // ---- Cache state registers ---- //
-
-    assign Icache_data_out = icache_data[current_index].data;
+    
     //setting valid bit depending on whether it is load or store command 
     always_comb begin
-        if(memop_dcache_packet.proc2Dcache_command == BUS_STORE) begin
-            dcache_memop_packet.Dcache_valid_out = dcache_data[current_index].valid && (dcache_data[current_index].tags == current_tag);
-
-            if(dcache_data[current_index].tags == current_tag)begin
+        //loading or storing
+        dcache_data_out = dcache_data[current_index].data;
+        dcache_memop_packet.Dcache_valid_out = dcache_data[current_index].valid && (dcache_data[current_index].tags == current_tag);
+        //if cache hit and storing
+        if(memop_dcache_packet.proc2Dcache_command == BUS_STORE && dcache_data[current_index].valid && dcache_data[current_index].tags == current_tag) begin
                 dcache_data[current_index].data  <= memop_dcache_packet.proc2Dcache_data;
                 dcache_data[current_index].tags  <= current_tag;
-                dcache_data[current_index].valid <= 1
-            end
-        end else if(memop_dcache_packet.proc2Dcache_command == BUS_LOAD) begin
-            dcache_memop_packet.Dcache_valid_out = write_successful;
-        end else begin
+                dcache_data[current_index].valid <= 1'b1;
+        end else if(memop_dcache_packet.proc2Dcache_command == BUS_NONE) begin
             dcache_memop_packet.Dcache_valid_out = 1'b0;
         end
 
