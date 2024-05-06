@@ -16,7 +16,8 @@ module lq(
 	input EX_LQ_PACKET ex_lq_packet,
 	input RS_LQ_PACKET rs_lq_packet,
 	
-	output LQ_RS_PACKET lq_rs_packet
+	output LQ_RS_PACKET lq_rs_packet,
+	output LQ_ID_PACKET lq_id_packet
 );
 	
 	LQ_ENTRY [`LSQ_SZ - 1:0] lq_table;
@@ -34,7 +35,7 @@ module lq(
 			tail_idx = 0;
 		end else begin 
 			if (id_lq_packet.enable) begin
-				lq_rs_packet.lq_pos = tail_idx; // needs to be blocking assignment
+				lq_id_packet.lq_pos = tail_idx; // needs to be blocking assignment
 				lq_table[tail_idx].rob_index = rob_lq_packet.free_idx;
 				tail_idx = tail_idx + 1;
 			end

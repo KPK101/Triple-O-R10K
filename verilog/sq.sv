@@ -16,7 +16,8 @@ module sq(
 	input EX_SQ_PACKET ex_sq_packet,
 	input ROB_SQ_PACKET rob_sq_packet,
 	
-	output SQ_RS_PACKET sq_rs_packet
+	output SQ_RS_PACKET sq_rs_packet,
+	output SQ_ID_PACKET sq_id_packet
 );
 	
 	SQ_ENTRY [`LSQ_SZ - 1:0] sq_table;
@@ -34,7 +35,7 @@ module sq(
 			tail_idx = 0;
 		end else begin 
 			if (id_sq_packet.enable) begin
-				sq_rs_packet.sq_pos = tail_idx; // needs to be blocking assignment
+				sq_id_packet.sq_pos = tail_idx; // needs to be blocking assignment
 				tail_idx = tail_idx + 1;
 			end
 			if (ex_sq_packet.enable) begin 

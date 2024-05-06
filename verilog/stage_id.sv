@@ -204,11 +204,15 @@ module stage_id (
     input RS_ID_PACKET rs_id_packet,
     input ROB_ID_PACKET rob_id_packet,
     input FL_ID_PACKET fl_id_packet,
+    input LQ_ID_PACKET lq_id_packet,
+    input SQ_ID_PACKET sq_id_packet,
     
     output ID_MT_PACKET id_mt_packet,
     output ID_RS_PACKET id_rs_packet,
     output ID_ROB_PACKET id_rob_packet,
     output ID_FL_PACKET id_fl_packet,
+    output ID_LQ_PACKET id_lq_packet,
+    output ID_SQ_PACKET id_sq_packet,
     output logic id_stall
 );
 
@@ -289,5 +293,13 @@ module stage_id (
     
     //Assign Free List Output
     assign id_fl_packet.pop_en = write && has_dest_reg;
+
+    //Assign LQ 
+    assign id_lq_packet.enable = decoder_packet.rd_mem ? 1 : 0;
+    assign id_rs_packet.lq_pos = lq_id_packet.lq_pos;
     
+    //Assign SQ 
+    assign id_sq_packet.enable = decoder_packet.wr_mem ? 1 : 0;
+    assign id_rs_packet.sq_pos = sq_id_packet.sq_pos;
+
 endmodule // stage_id

@@ -5,28 +5,27 @@ typedef struct packed{
 	logic busy;
 	logic issued;
 	DECODER_PACKET decoder_packet;
+	logic [1:0] lq_pos;
+	logic [1:0] sq_pos;
 }RS_ENTRY;
 
 module rs(
 	input clock,
 	input reset,
-<<<<<<< HEAD
-=======
 	
->>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
 	//bus input
 	input interrupt,
 	input TAG cdb,
-<<<<<<< HEAD
 	input cdb_en,
 	input ID_RS_PACKET id_rs_packet, // decoder_packet + write_en 
 	input EX_RS_PACKET ex_rs_packet, // remove_idx + remove_en
-=======
 	input logic cdb_en,
 	input interrupt,
 
 	input is_stall,
->>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
+
+	input LQ_RS_PACKET lq_rs_packet,
+	input SQ_RS_PACKET sq_rs_packet,
 	
 	output [4:0] rs_busy_status, // 5 bit 0 -> 4 for debug purpose
 	output logic is_mult,
@@ -46,7 +45,6 @@ module rs(
 					 !is_mult			    ? 0 :
 					 rs_table[3].busy	            ? 4 : 3; 
 	
-<<<<<<< HEAD
 	// for debugging only 
 	assign rs_busy_status[0] = rs_table[0].busy ; 
 	assign rs_busy_status[1] = rs_table[1].busy ;
@@ -63,13 +61,11 @@ module rs(
 	*/
 
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy; 
-=======
 	assign rs_id_packet.free_idx   =	id_rs_packet.decoder_packet.wr_mem	? 1 :
 							    id_rs_packet.decoder_packet.rd_mem	? 2 :
 							    is_mult			                ? 0 :
 							    rs_table[3].busy	                ? 4 : 3;
 	assign rs_id_packet.free = !rs_table[rs_id_packet.free_idx].busy;
->>>>>>> e1966eb54daba1c716a6d7f8996b62afbb71a0cf
 
 	//Handle rs -> is issue logic
 	always_comb begin
@@ -126,6 +122,8 @@ module rs(
 				rs_table[rs_id_packet.free_idx].busy   <= 1'b1;
 				rs_table[rs_id_packet.free_idx].issued   <= 1'b0;
 				rs_table[rs_id_packet.free_idx].decoder_packet    <= id_rs_packet.decoder_packet;
+				rs_table[rs_id_packet.free_idx].lq_pos    <= id_rs_packet.lq_pos;
+				rs_table[rs_id_packet.free_idx].sq_pos    <= id_rs_packet.sq_pos;
 
 			end
 			
