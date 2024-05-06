@@ -71,7 +71,7 @@ module dcache (
 
     wire update_mem_tag  = changed_addr || miss_outstanding || got_mem_data;
 
-    wire unanswered_miss = changed_addr ? !Dcache_valid_out
+    wire unanswered_miss = changed_addr ? !dcache_memop_packet.Dcache_valid_out
                                         : miss_outstanding && (Imem2proc_response == 0);
 
     //tell memory if it is BUS_LOAD or BUS_STORE
@@ -82,10 +82,17 @@ module dcache (
     assign proc2Dcache_data  = memop_dcache_packet.proc2Dcache_data;
     // ---- Cache state registers ---- //
 
+    assign Icache_data_out = icache_data[current_index].data;
     //setting valid bit depending on whether it is load or store command 
     always_comb begin
         if(memop_dcache_packet.proc2Dcache_command == BUS_STORE) begin
             dcache_memop_packet.Dcache_valid_out = dcache_data[current_index].valid && (dcache_data[current_index].tags == current_tag);
+
+            if(dcache_data[current_index].tags == current_tag)begin
+                dcache_data[current_index].data  <= memop_dcache_packet.proc2Dcache_data;
+                dcache_data[current_index].tags  <= current_tag;
+                dcache_data[current_index].valid <= 1
+            end
         end else if(memop_dcache_packet.proc2Dcache_command == BUS_LOAD) begin
             dcache_memop_packet.Dcache_valid_out = write_successful;
         end else begin
@@ -96,7 +103,7 @@ module dcache (
 
     always_ff @(posedge clock) begin
         if (reset) begin
-            last_index       <= -1; // These are -1 to get ball rolling when
+            last_index       <= -1; // These are -1 to get ball rolling when2
             last_tag         <= -1; // reset goes low because addr "changes"
             current_mem_tag  <= 0;
             miss_outstanding <= 0;
