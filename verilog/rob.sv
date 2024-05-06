@@ -12,7 +12,6 @@ typedef struct packed {
 	logic [`XLEN-1:0] NPC;
 
 	//Values from IC stored for retiring
-
 	logic take_branch;
 	logic [`XLEN-1:0] result;
 	logic [`XLEN-1:0] rs2_value;
@@ -34,13 +33,12 @@ module rob (
 	
 	output ROB_IR_PACKET rob_ir_packet
 
+
 );
 	ROB_ENTRY [`ROB_SZ-1:0] rob;
 	
-	//logic [$clog2(`ROB_SZ)-1:0] head_idx;
-	//logic [$clog2(`ROB_SZ):0] next_counter;
-	//logic [$clog2(`ROB_SZ):0] counter;
-	//logic [$clog2(`ROB_SZ)-1:0] tail_idx;
+	logic [$clog2(`ROB_SZ)-1:0] head_idx;
+	logic [$clog2(`ROB_SZ):0] counter;
 	
 	//Handle rob->id
 	assign rob_id_packet.free = counter != `ROB_SZ;
@@ -85,8 +83,7 @@ module rob (
 		if (reset || interrupt) begin
 			//Reset head and tail index
 			head_idx <= 0;
-			//rob_id_packet.free_idx <= 0; // output 
-			tail_idx <= 0;
+			rob_id_packet.free_idx <= 0;
 			counter <= 0;
 			//Invalidate 0 index entry for insertion
 			rob[0].t.valid <= 0;
@@ -95,7 +92,6 @@ module rob (
 		end else begin
 			//Handle id->rob
 			if (rob_id_packet.free && id_rob_packet.write_en) begin
-
 				rob[rob_id_packet.free_idx].completed <= 0;
 				rob[rob_id_packet.free_idx].t <= id_rob_packet.t_in;
 				rob[rob_id_packet.free_idx].t_old <= id_rob_packet.t_old_in;
@@ -107,7 +103,6 @@ module rob (
 				rob[rob_id_packet.free_idx].NPC <= id_rob_packet.NPC;
 				
 				rob_id_packet.free_idx <= rob_id_packet.free_idx + 1;
-
 			end
 			//Handle ic->rob
 			if (ic_rob_packet.complete_en) begin
@@ -115,19 +110,15 @@ module rob (
 				rob[ic_rob_packet.complete_idx].result <= ic_rob_packet.result;
 				rob[ic_rob_packet.complete_idx].rs2_value <= ic_rob_packet.rs2_value;
 				rob[ic_rob_packet.complete_idx].take_branch <= ic_rob_packet.take_branch;
+				
 			end
+			
 			//Handle rob->retire update
 			if (rob_ir_packet.retire_en && !ir_stall) begin
 				head_idx <= head_idx + 1;
 			end
-
-			if (tail_idx == 2'b11) tail_idx <= 0;
-
-			//Counter logic 
-			if (rob_id_packet.free && id_rob_packet.write_en && !rob[head_idx].complete) counter <= counter + 1;		
-			else if (rob_id_packet.free && id_rob_packet.write_en && rob[head_idx].complete) counter <= counter;
-			else if (!rob_id_packet.free && !id_rob_packet.write_en && rob[head_idx].complete) counter <= counter - 1;
-				
+			//Update Counter
+			counter <= next_counter;
 		end
 	end
 endmodule
