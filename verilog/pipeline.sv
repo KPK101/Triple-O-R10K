@@ -517,34 +517,34 @@ module pipeline (
         icache2fetch_data = Icache_data_out;
         is_stall = 0;
 
-        if (store2Dmem_command != BUS_NONE && !dcache_memop_packet.Dcache_valid_out) begin
-            memop_dcache_packet.proc2Dcache_command    = store2Dmem_command;
-            memop_dcache_packet.proc2Dcache_addr       = store2Dmem_addr;
-            memop_dcache_packet.proc2Dcache_data       = {32'b0, store2Dmem_data};
+        // if (store2Dmem_command != BUS_NONE && !dcache_memop_packet.Dcache_valid_out) begin
+        //     memop_dcache_packet.proc2Dcache_command    = store2Dmem_command;
+        //     memop_dcache_packet.proc2Dcache_addr       = store2Dmem_addr;
+        //     memop_dcache_packet.proc2Dcache_data       = {32'b0, store2Dmem_data};
 
-            proc2mem_addr    = dcache2Imem_addr;
-            proc2mem_command = dcache2Imem_command;
-            proc2mem_data    = dcache2Imem_data;
+        //     proc2mem_addr    = dcache2Imem_addr;
+        //     proc2mem_command = dcache2Imem_command;
+        //     proc2mem_data    = dcache2Imem_data;
 
-            if (load2Dmem_command != BUS_NONE) begin
-                is_stall        = 1;
-            end
-            next_if_valid       = 0;
+        //     if (load2Dmem_command != BUS_NONE) begin
+        //         is_stall        = 1;
+        //     end
+        //     next_if_valid       = 0;
 
-        end else if (load2Dmem_command != BUS_NONE&& !dcache_memop_packet.Dcache_valid_out) begin
-            memop_dcache_packet.proc2Dcache_command    = load2Dmem_command;
-            memop_dcache_packet.proc2Dcache_addr      = load2Dmem_addr;
-            // proc2mem_data       = {32'b0, load2Dmem_data};
-            proc2mem_addr    = dcache2Imem_addr;
-            proc2mem_command = dcache2Imem_command;
-            proc2mem_data    = dcache2Imem_data;
-            next_if_valid       = 0;
+        // end else if (load2Dmem_command != BUS_NONE&& !dcache_memop_packet.Dcache_valid_out) begin
+        //     memop_dcache_packet.proc2Dcache_command    = load2Dmem_command;
+        //     memop_dcache_packet.proc2Dcache_addr      = load2Dmem_addr;
+        //     // proc2mem_data       = {32'b0, load2Dmem_data};
+        //     proc2mem_addr    = dcache2Imem_addr;
+        //     proc2mem_command = dcache2Imem_command;
+        //     proc2mem_data    = dcache2Imem_data;
+        //     next_if_valid       = 0;
             
-        end else begin
+        // end else begin
             proc2Icache_addr = proc2Imem_addr;
             proc2mem_addr    = icache2Imem_addr;
             proc2mem_command = icache2Imem_command;
-        end
+        // end
     end
 
     //////////////////////////////////////////////////
