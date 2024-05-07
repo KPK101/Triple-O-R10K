@@ -218,7 +218,7 @@ module pipeline (
     logic id_stall;
     logic next_if_valid;
     EX_IF_PACKET ex_if_packet;
-
+    logic [63:0] icache2fetch_data;
     stage_if stage_if_0 (
         // Inputs
         .clock (clock),
@@ -226,7 +226,7 @@ module pipeline (
         .if_valid       (next_if_valid),
         .take_branch    (interrupt),
         .branch_target  (branch_target),
-        .Imem2proc_data (mem2proc_data),
+        .Imem2proc_data (icache2fetch_data),
         .ex_if_packet   (ex_if_packet),
 
         // Outputs
@@ -514,8 +514,9 @@ module pipeline (
     always_comb begin
         next_if_valid = id_stall;
         dcache2load_data = dcache_memop_packet.Dcache_data_out;
-        
+        icache2fetch_data = Icache_data_out;
         is_stall = 0;
+
         if (store2Dmem_command != BUS_NONE && !dcache_memop_packet.Dcache_valid_out) begin
             memop_dcache_packet.proc2Dcache_command    = store2Dmem_command;
             memop_dcache_packet.proc2Dcache_addr       = store2Dmem_addr;
