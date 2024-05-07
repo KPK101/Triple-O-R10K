@@ -298,8 +298,6 @@ module testbench;
             print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
                 32'b0, proc2mem_addr[31:0],
                 proc2mem_data[63:32], proc2mem_data[31:0]);
-
-            hexdump(0,probe);
             
             if (pipeline_completed_insts > 0) begin
                 if(pipeline_commit_wr_en)
