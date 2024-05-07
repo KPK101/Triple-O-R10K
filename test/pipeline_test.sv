@@ -92,6 +92,8 @@ module testbench;
     logic [31:0]      ir_inst_dbg;
     logic             ir_valid_dbg;
 
+    logic [`XLEN-1:0] probe;
+
     // Instantiate the Pipeline
     pipeline core (
         // Inputs
@@ -138,7 +140,9 @@ module testbench;
 
         .ir_NPC_dbg   (ir_NPC_dbg),
         .ir_inst_dbg  (ir_inst_dbg),
-        .ir_valid_dbg (ir_valid_dbg)
+        .ir_valid_dbg (ir_valid_dbg),
+        
+        .probe        (probe)
     );
 
 
@@ -294,6 +298,8 @@ module testbench;
             print_membus({30'b0,proc2mem_command}, {28'b0,mem2proc_response},
                 32'b0, proc2mem_addr[31:0],
                 proc2mem_data[63:32], proc2mem_data[31:0]);
+
+            hexdump(0,probe);
             
             if (pipeline_completed_insts > 0) begin
                 if(pipeline_commit_wr_en)

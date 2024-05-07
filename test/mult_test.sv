@@ -2,8 +2,9 @@
 `include "verilog/sys_defs.svh"
 
 module testbench;
-
-    logic [63:0] a, b, result, cres;
+    logic [31:0] c, d;
+    logic [63:0] a, b, cres;
+    logic signed [63:0] result;
     logic quit, clock, start, reset, done, correct;
     integer i;
 
@@ -63,7 +64,8 @@ module testbench;
 
         reset = 1;
         clock = 0;
-        a = 2;
+        c = -1;
+        a = c;
         b = 3;
         start = 1;
         @(negedge clock);

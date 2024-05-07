@@ -479,8 +479,8 @@ typedef struct packed {
     logic [`XLEN-1:0] rs1_value; // reg A value
     logic [`XLEN-1:0] rs2_value; // reg B value
 
-    ALU_OPA_SELECT opa_select; // ALU opa mux select (ALU_OPA_xxx *)
-    ALU_OPB_SELECT opb_select; // ALU opb mux select (ALU_OPB_xxx *)
+    logic [`XLEN-1:0] opa; // opa
+    logic [`XLEN-1:0] opb; // opb
     //DECODER_PACKET decoder_packet;
 
     TAG         dest_tag;  // destination tag
@@ -492,13 +492,17 @@ typedef struct packed {
     logic       halt;          // Is this a halt?
     logic       illegal;       // Is this instruction illegal?
     logic       csr_op;        // Is this a CSR operation? (we only used this as a cheap way to get return code)
-    logic       pred_take;
     
     logic [$clog2(`RS_SZ)-1:0] rs_idx;
     logic [$clog2(`ROB_SZ)-1:0] rob_idx;
 
     logic       valid;
+    logic       pred_take;
 } IS_EX_PACKET;
+
+typedef struct packed {
+    IS_EX_PACKET [`RS_SZ-1:0] entries;
+} EX_PACKET;
 
 typedef struct packed {
     logic cond_take;

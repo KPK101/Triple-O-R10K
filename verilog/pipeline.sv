@@ -55,7 +55,9 @@ module pipeline (
     
     output logic [`XLEN-1:0] ir_NPC_dbg,
     output logic [31:0]      ir_inst_dbg,
-    output logic             ir_valid_dbg
+    output logic             ir_valid_dbg,
+
+    output logic [`XLEN-1:0] probe
 );
     //////////////////////////////////////////////////
     //                                              //
@@ -299,20 +301,27 @@ module pipeline (
     
     //////////////////////////////////////////////////
     //                                              //
-    //            IS/EX Pipeline Register           //
+    //                IS/EX Controller              //
     //                                              //
     //////////////////////////////////////////////////
 
-    always_ff @(posedge clock) begin
-        if (reset || interrupt) begin
-            is_ex_reg.inst <= `NOP;
-            is_ex_reg.valid <= 0;
-            is_ex_reg.NPC <= 0;
-        end if (!is_stall) begin
-            is_ex_reg <= is_ex_packet;
-        end
-    end
+    logic [$clog2(`RS_SZ)-1:0] done_idx;
+    logic done_en;
 
+    IS_EX_PACKET [`RS_SZ - 1:0] ex_entries;
+
+    ex_manager ex_manager_0 (
+        .clock(clock),
+        .reset(reset),
+
+        .interrupt(interrupt),
+
+        .done_idx(done_idx),
+        .done_en(done_en),
+
+        .is_ex_packet(is_ex_packet),
+        .ex_entries(ex_entries)
+    );
     //////////////////////////////////////////////////
     //                                              //
     //                  EX-Stage                    //
@@ -325,12 +334,17 @@ module pipeline (
     logic [`XLEN-1:0] load2Dmem_data;
 
     stage_ex stage_ex_0 (
-        .is_ex_reg      (is_ex_reg),
+        .clock(clock),
+        .reset(reset),
+        .ex_entries      (ex_entries),
 
         .ex_ic_packet	(ex_ic_packet),
         .ex_rs_packet	(ex_rs_packet),
         .ex_prf_packet	(ex_prf_packet),
         .ex_if_packet   (ex_if_packet),
+
+        .done_idx(done_idx),
+        .done_en(done_en),
 
         .Dmem2load_data (mem2proc_data[`XLEN-1:0]),
 
@@ -501,9 +515,9 @@ module pipeline (
     assign is_inst_dbg  = rs_is_packet.decoder_packet.inst;
     assign is_valid_dbg = rs_is_packet.issue_en;
 
-    assign ex_NPC_dbg   = is_ex_reg.NPC;
-    assign ex_inst_dbg  = is_ex_reg.inst;
-    assign ex_valid_dbg = is_ex_reg.valid;
+    assign ex_NPC_dbg   = ex_ic_packet.NPC;
+    assign ex_inst_dbg  = ex_ic_packet.inst;
+    assign ex_valid_dbg = ex_ic_packet.valid;
 
     assign ic_NPC_dbg   = ex_ic_reg.NPC;
     assign ic_inst_dbg  = ex_ic_reg.inst;
@@ -513,4 +527,12 @@ module pipeline (
     assign ir_inst_dbg  = rob_ir_packet.inst;
     assign ir_valid_dbg = rob_ir_packet.retire_en;
 
+    assign probe = {ex_entries[0].valid,
+                    ex_entries[1].valid,
+                    ex_entries[2].valid,
+                    ex_entries[3].valid,
+                    ex_entries[4].valid,
+                    ex_entries[5].valid,
+                    ex_entries[6].valid,
+                    ex_entries[7].valid};
 endmodule // pipeline
