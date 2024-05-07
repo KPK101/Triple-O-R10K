@@ -67,7 +67,7 @@ module pipeline (
     logic if_id_enable, is_ex_enable, ex_ic_enable;
 
     // Outputs from IF-Stage and IF/ID Pipeline Register
-    logic [`XLEN-1:0] proc2Imem_addr;
+    logic [`XLEN-1:0] fetch2icache_addr;
     IF_ID_PACKET if_id_packet, if_id_reg;
 
     // Outputs from IS stage
@@ -231,7 +231,7 @@ module pipeline (
 
         // Outputs
         .if_id_packet   (if_id_packet),
-        .proc2Imem_addr (proc2Imem_addr)
+        .proc2Imem_addr (fetch2icache_addr)
     );
 
     //////////////////////////////////////////////////
@@ -483,12 +483,15 @@ module pipeline (
     icache icache_0(
         .clock(clock),
         .reset(reset),
+
         .proc2Icache_addr(proc2Icache_addr),
         .Icache_data_out(Icache_data_out),
         .Icache_valid_out(Icache_valid_out),
+
         .Imem2proc_data(mem2proc_data),
         .Imem2proc_response(mem2proc_response),
         .Imem2proc_tag(mem2proc_tag),
+
         .icache2Imem_addr(icache2Imem_addr),
         .icache2Imem_command(icache2Imem_command)
     );
@@ -512,11 +515,18 @@ module pipeline (
     );
 
     always_comb begin
-        next_if_valid = id_stall;
+        // next_if_valid = id_stall;
         dcache2load_data = dcache_memop_packet.Dcache_data_out;
         icache2fetch_data = Icache_data_out;
         is_stall = 0;
-
+        proc2Icache_addr = fetch2icache_addr;
+        proc2mem_addr    = icache2Imem_addr;
+        proc2mem_command = icache2Imem_command; 
+        next_if_valid = Icache_valid_out;
+        // if(icache2Imem_command == BUS_LOAD)
+           
+        // else
+        //     next_if_valid = 1;
         // if (store2Dmem_command != BUS_NONE && !dcache_memop_packet.Dcache_valid_out) begin
         //     memop_dcache_packet.proc2Dcache_command    = store2Dmem_command;
         //     memop_dcache_packet.proc2Dcache_addr       = store2Dmem_addr;
@@ -541,9 +551,9 @@ module pipeline (
         //     next_if_valid       = 0;
             
         // end else begin
-            proc2Icache_addr = proc2Imem_addr;
-            proc2mem_addr    = icache2Imem_addr;
-            proc2mem_command = icache2Imem_command;
+            // proc2Icache_addr = fetch2icache_addr;
+            // proc2mem_addr    = icache2Imem_addr;
+            // proc2mem_command = icache2Imem_command;
         // end
     end
 
